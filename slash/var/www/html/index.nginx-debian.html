@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="icon" href="minexmr2-header2.svg" type="image/png"/>
+
+<title>Welcome MINEXMR2, goodbye MINEXMR</title>
+<!-- Begin formerly Jekyll SEO tag v2.6.1 -->
+<meta name="generator" content="Jekyll v3.8.7" />
+<meta name="author" content="Welcome MINEXMR2, goodbye MINEXMR" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://minexmr2.com" />
+<meta property="og:title" content="Welcome MINEXMR2, goodbye MINEXMR" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="MINEXMR2.COM, A high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language from scratch" />
+<meta property="og:description" content="MINEXMR2.COM, A high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language from scratch" />
+<link rel="canonical" href="https://minexmr2.com/" />
+<meta property="og:url" content="https://minexmr2.com/" />
+<meta property="og:site_name" content="Welcome MINEXMR2, goodbye MINEXMR" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:url" content="https://minexmr2.com" />
+<meta property="twitter:title" content="Welcome MINEXMR2, goodbye MINEXMR" />
+<meta property="twitter:description" content="MINEXMR2.COM, A high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language from scratch" />
+<script type="application/ld+json">
+{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/minexmr2-header2-1024.png"}},"headline":"Welcome MINEXMR2, goodbye MINEXMR","url":"https://minexmr2.com/","description":"MINEXMR2.COM, A high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language from scratch","name":"Welcome MINEXMR2, goodbye MINEXMR","@context":"https://schema.org"}
+</script>
+
+<style>
+@font-face {
+    font-family: 'IBMPlexSans';
+    src: url('IBMPlexSans-Regular-Latin1.woff2');
+    font-display: swap;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+body {
+  position: relative;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'IBMPlexSans', Helvetica, sans-serif;
+    font-size: 16px;
+}
+header {
+    font-size: larger;
+    font-weight: bold;
+    padding-bottom: 1em;
+}
+table {
+    padding-bottom: 1em;
+}
+td {
+    vertical-align: top;
+    white-space: nowrap;
+}
+td:last-child {
+    white-space: unset;
+}
+.miner {
+    display: none;
+}
+#address {
+    min-width: 10ch;
+    max-width: 10ch;
+    overflow: hidden;
+    border-bottom: 1px dashed black;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-wrap: unset;
+}
+#address:focus {
+    outline: 0px solid transparent;
+    text-overflow: initial;
+    white-space: initial;
+    word-wrap: break-word;
+}
+
+body {
+    background-color: #eee;
+    color: #333;
+}
+
+h1.menu {
+    background-color: #a00;
+    color: #fff;
+    padding: 4px;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 5px 10px;
+}
+
+h2 {
+    text-align: center;
+    padding: 4px;
+}
+
+h2.special {
+    margin-bottom: -10px; padding-left: 150px; padding-right: 150px;
+    font-size: 30px;
+}
+
+.font_menu {
+    font-weight: normal;
+}
+
+h3 {
+    background-color: #f63;
+    color: #444;
+    padding: 4px;
+}
+
+p {
+    padding: 4px;
+}
+
+header.stickup {
+    margin-top: -16px;
+}
+
+table.stickup {
+    margin-top: -8px;
+
+}
+
+p.stickup {
+    margin-top: 0px;
+
+}
+
+p.stickup2 {
+    margin-top: -16px;
+}
+
+.important {
+    background-color: #555;
+    color: #eee;
+    padding: 4px;
+}
+
+.important2 {
+    background-color: #fff;
+    color: #000;
+    padding: 4px;
+}
+
+.important2grad {
+    background: linear-gradient(90deg, rgba(204,204,204,1) 0%, rgba(255,255,255,1) 50%, rgba(204,204,204,1) 100%);
+}
+
+.important3 {
+    background-color: #ccc;
+    color: #000;
+    padding: 4px;
+}
+
+table.full_width {
+    width: 100%;
+}
+
+table.full_width th {
+    text-align: right;
+    width: 50%;
+    font-weight: normal;
+}
+
+table.full_width td {
+    text-align: left;
+    font-weight: bold;
+}
+
+img.header {
+    vertical-align: bottom;
+    height: 75px;
+    width: auto;
+    margin-bottom: -33px;
+}
+
+a:link {
+    color: #369;
+}
+
+a:visited {
+    color: #369;
+}
+
+a:active {
+    color: #369;
+}
+
+a:hover {
+    color: #39f;
+}
+
+@media only screen and (max-width: 767px) {
+
+body {
+    font-size: 14px;
+}
+
+h2.special {
+    padding-left: 4px; padding-right: 4px;
+    font-size: 26px;
+}
+
+img.header {
+    vertical-align: bottom;
+    height: 25px;
+    width: auto;
+    margin-bottom: 0px;
+}
+
+}
+</style>
+
+</head>
+
+<body>
+
+<h1 class="menu font_menu" style="margin-top: -4px;"><img src="minexmr2-header.svg" class="header" alt="MINEXMR2 Monero mining pool header icon" />Welcome&nbsp;MINEXMR2, goodbye&nbsp;MINEXMR</h1>
+
+<h2 class="font_menu special"><img src="minexmr2-header2.svg" style="vertical-align: middle; height: 75px; width: auto; margin-top: -4px;" alt="MINEXMR2 Monero mining pool header icon 2" />&nbsp;MINEXMR2.COM
+<br/><p style="margin-top: -20px;"><small>A high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language from scratch</small></p></h2>
+
+<p class="important3">
+The single payout mechanism is PPLNS, which favors loyal pool miners.
+</p>
+
+<header class="important2 important2grad stickup">Pool Statistics <small><small>(Statistics API url (returns JSON): <b>https://minexmr2.com/stats</b>)</small></small></header>
+
+<table class="important2 important2grad full_width stickup">
+    <tr><th>Pool HR:</th><td id="pool_hashrate">service unavailable</td></tr>
+    <tr><th>Network HR:</th><td id="network_hashrate"></td></tr>
+    <tr><th>Network height:</th><td id="network_height"></td></tr>
+    <tr><th>Blocks found:</th><td id="pool_blocks_found"></td></tr>
+    <tr><th>Last block found:</th><td id="last_block_found"></td></tr>
+    <tr><th>Last block found height:</th><td id="last_block_found_height"></td></tr>
+    <tr><th>Last template:</th><td id="last_template_fetched"></td></tr>
+    <tr><th>Round HR:</th><td id="round_hashrate"></td></tr>
+    <tr><th>Round hashes:</th><td id="round_hashes"></td></tr>
+    <tr><th>Payment threshold:</th><td id="payment_threshold"></td></tr>
+    <tr><th>Pool fee:</th><td id="pool_fee"></td></tr>
+    <tr style="display: none;"><th>Pool port:</th><td id="pool_port"></td></tr>
+    <tr style="display: none;"><th>Pool SSL port:</th><td id="pool_ssl_port"></td></tr>
+    <tr style="display: none;"><th>Allow self-select:</th><td id="allow_self_select"></td></tr>
+    <tr><th>Miners connected:</th><td id="connected_miners"></td></tr>
+    <tr class="miner"><th>Your HR:</th><td id="miner_hashrate"></td></tr>
+    <tr class="miner"><th>Balance due:</th><td id="miner_balance"></td></tr>
+    <tr><th>Miner address:</th><td id="address" contenteditable="true"></td></tr>
+</table>
+
+<p class="important stickup">Stratum pool domain: <b>minexmr2.com</b>.
+<br/>Stratum pool port: <b>4444</b>.
+<br/>Stratum SSL pool port: <b>8443</b>.
+</p>
+
+<p class="important3 stickup2">
+Use <a href="https://github.com/xmrig/xmrig" target="_blank">github.com/xmrig/xmrig</a>
+with user <b>&lt;your-Monero-wallet-address&gt;</b>, password <b>&lt;any&gt;</b>. No registration required.
+Once your miner submits few shares, enter <b>&lt;your-Monero-wallet-address&gt;</b>
+into table below (column <b>"Miner&nbsp;address:</b>")
+and see your miner's performance and balance (just blur out of the column).
+Nicehash mode and xmrig-proxy are supported. Example xmrig configuration files that are proven to work:
+<a href="xmrig-notls/config.json" target="_blank">config.json&nbsp;(no&nbsp;tls)</a>,
+<a href="xmrig-tls/config.json" target="_blank">config.json&nbsp;(tls)</a>.
+Place one of them into the folder containing your xmrig executable (don't forget to replace test XMR address
+to your one).
+</p>
+
+<p class="important2 stickup2">
+MINEXMR2 pool is ready to Monero upcoming network upgrade (fork) near
+<a href="https://xmr.noctism.com" target="_blank">Aug&nbsp;12&nbsp;2022</a>.
+Note: mining software will not be affected.
+<b>Update: hard-fork has been done successfully</b>.
+</p>
+
+<h2>Brief introduction to the pool</h2>
+
+<p>
+<b>This pool's owner is absolutely independent on previous minexmr.com pool's owner</b>.
+The goal is to create a much more elegant, spartan, robust incarnation of legendary old-school Monero mining pool,
+preserving well known name. There is no single boring detail in web-UI. No registration, no cookies,
+no personal data collection. See what garbage violates your privacy do you see in top&nbsp;3
+<a href="https://miningpoolstats.stream/monero" target="_blank">miningpoolstats.stream/monero</a>:
+nanopool.org, really?!
+</p>
+
+<p>
+One may ask: why I have to trust in this brand new pool? Just because <b>payment threshold is as low as 0.01XMR</b>,
+it becomes possible because of Monero tail emission allows transaction fees to be as low as 0.00004XMR.
+You simply can't lose significant Monero funds by definition even in most worse case!
+</p>
+
+<p>
+We have decided not to use social media like Twitter, Reddit, Facebook, TikTok, etc, to broadcast minexmr2.com online status and
+current technical works. Instead we use advanced approach based on GitHub, GitLab README.md files and issues.
+In a case of this service unavailable feel free to do one of the following:
+<ul>
+<li>Check either
+<b><a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a></b>
+or
+<b><a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a></b>
+project's README file for online status</li>
+<li>Write email to official support: <b>minexmr2@tutanota.com</b></li>
+<li>Create new
+<b><a href="https://github.com/minexmr2/minexmr2/issues" target="_blank">GitHub project's issue</a></b>
+or
+<b><a href="https://gitlab.com/minexmr/minexmr2/-/issues" target="_blank">GitLab project's issue</a></b>.</li>
+</ul>
+Whatever happens, don't worry about your pending XMR funds: pool is beyond pretty strong
+configured <a href="https://help.ubuntu.com/community/UFW" target="_blank">ufw</a> firewall
+and <a href="https://www.haproxy.org/" target="_blank">haproxy</a> shield.
+Also this pool has <b>upstream server, highly isolated counterpart that performs all the payment processing</b>.
+Your pending balance is being duplicated on both edge and upstream servers
+via an encrypted <a href="https://openvpn.net/" target="_blank">openvpn</a> tunnel.
+Of course, all the services' ports (where possible) are non-standard and secret.
+</p>
+
+<p>
+This pool is intended for those people who do respect the privacy and care about their personal data.
+One can consider this pool as intermediate step to most sophisticated decentralized
+<a href="https://github.com/SChernykh/p2pool" target="_blank">p2pool</a>
+or a quick robust solution where he can't spend precious time to install, deploy
+and maintain his own p2pool instance (actually, it partially uses p2pool inside).
+<b>MINEXMR2 is a pretty good alternative to both MINEXMR and p2pool</b>.
+</p>
+
+<p class="important">
+Support email for manual payouts: <b>minexmr2@tutanota.com</b>.
+</p>
+
+<p class="important3 stickup2"><small>Pool and site implementation of minexmr2.com is open source and mirrored on both
+<a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a>,
+<a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a>. It is built against Monero
+<a href="https://github.com/monero-project/monero/releases/tag/v0.18.1.0" target="_blank">Fluorine&nbsp;Fermi,
+Major Point Release&nbsp;1&nbsp;v0.18.1.0</a>.
+</small></p>
+
+<script>
+    function format_last_time(last)
+    {
+        var now = new Date().getTime() / 1000;
+        var diff = now - last;
+        var v;
+        if (last == 0)
+            return "None yet";
+        else if (diff <= 0)
+            return "Just now";
+        else if (diff < 60)
+        {
+            v = parseInt(diff);
+            return v + " second" + (v != 1 ? "s" : "") + " ago";
+        }
+        else if (diff < 3600)
+        {
+            v = parseInt(diff/60);
+            return v + " minute" + (v != 1 ? "s" : "") + " ago";
+        }
+        else if (diff < 86400)
+        {
+            v = parseInt(diff/3600);
+            return v + " hour" + (v != 1 ? "s" : "") + " ago";
+        }
+        else
+        {
+            v = parseInt(diff/86400);
+            return v + " day" + (v != 1 ? "s" : "") + " ago";
+        }
+    }
+
+    function max_precision(n, p)
+    {
+        return parseFloat(parseFloat(n).toFixed(p));
+    }
+
+    function format_hashes(h)
+    {
+        if (h < 1e-12)
+            return "0 H";
+        else if (h < 1e-9)
+            return max_precision(h*1e+12, 0) + " pH";
+        else if (h < 1e-6)
+            return max_precision(h*1e+9, 0) + " nH";
+        else if (h < 1e-3)
+            return max_precision(h*1e+6, 0) + " μH";
+        else if (h < 1)
+            return max_precision(h*1e+3, 0) + " mH";
+        else if (h < 1e+3)
+            return parseInt(h) + " H";
+        else if (h < 1e+6)
+            return max_precision(h*1e-3, 2) + " KH";
+        else if (h < 1e+9)
+            return max_precision(h*1e-6, 2) + " MH";
+        else
+            return max_precision(h*1e-9, 2) + " GH";
+    }
+
+    function format_hashrate(h)
+    {
+        return format_hashes(h) + "/s";
+    }
+
+    function format_round_hashrate(round_hashes, last_block_found)
+    {
+        var now = new Date().getTime() / 1000;
+        var diff = now - last_block_found;
+        if (last_block_found == 0)
+            return 0;
+        if (diff <= 0)
+            return 0;
+        return format_hashrate(round_hashes / diff);
+    }
+
+    var wf = document.querySelector("#address");
+    var xhr = new XMLHttpRequest();
+    var rhr = document.querySelector("#round_hashrate");
+
+    xhr.onload = function()
+    {
+        var stats = JSON.parse(xhr.responseText);
+        for (var e in stats)
+        {
+            var el = document.querySelector("#"+e);
+            if (!el)
+                continue;
+            if ((/^last/.test(e)) && (e!=='last_block_found_height'))
+                el.innerHTML = format_last_time(stats[e]);
+            else if (/hashrate/.test(e))
+                el.innerHTML = format_hashrate(stats[e]);
+            else if (e == "pool_fee")
+                el.innerHTML = (stats[e]*100) + "%";
+            else if (e == "allow_self_select")
+                el.innerHTML = stats[e] == 1 ? "Yes" : "No";
+            else if (e == "round_hashes")
+            {
+                el.innerHTML = max_precision(stats[e]*100 /
+                    stats["network_difficulty"], 1) + "%" +
+                    " (" + format_hashes(stats[e]) + " / " +
+                    format_hashes(stats["network_difficulty"]) + ")";
+                rhr.innerHTML = format_round_hashrate(
+                    stats["round_hashes"], stats["last_block_found"]);
+            }
+            else if (e == "pool_ssl_port")
+            {
+                el.closest("tr").style = "display: " +
+                    (stats[e] == 0 ? "none;" : "table-row;");
+                el.innerHTML = stats[e];
+            }
+            else if (e == "payment_threshold")
+            {
+                el.innerHTML = stats[e] + " XMR";
+            }
+            else
+                el.innerHTML = stats[e];
+        }
+    };
+
+    wf.onblur = function(e)
+    {
+        var d = new Date();
+        d.setTime(d.getTime() + (86400 * 365 * 1000));
+        document.cookie = "wa=" + this.innerText +
+            ";expires=" + d.toGMTString();
+        window.location.reload();
+        return false;
+    };
+
+    window.onload = function()
+    {
+        var jar = {};
+        for (var kv, i=0, kvs=document.cookie.split(/\s*;\s*/); i<kvs.length; i++)
+        {
+            kv = kvs[i].split(/\s*=\s*/);
+            if (kv.length > 1)
+            {
+                try {
+                    jar[kv[0]] = kv[1];
+                } catch (e) {}
+            }
+        }
+        if (jar.wa &&
+            /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/.test(jar.wa))
+        {
+            var m = document.querySelectorAll(".miner");
+            for (var i=0; i<m.length; i++)
+            {
+                m[i].style = "display: table-row;";
+            }
+            wf.innerText = jar.wa;
+        }
+        var get_stats = function()
+        {
+            xhr.open("GET", "/stats");
+            xhr.send(null);
+        };
+        setInterval(get_stats, 30000);
+        get_stats();
+    };
+</script>
+</body>
+</html>

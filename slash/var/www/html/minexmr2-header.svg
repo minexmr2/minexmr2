@@ -1,0 +1,17 @@
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 15 15"
+    height="100"
+    width="100">
+    <defs/>
+    <g
+        transform="translate(0,-287.73958)">
+    <path
+        d="M 2.1598652,297 8.6394566,287.92857 15.119048,297 Z"
+        style="fill:#888888;stroke:none;" />
+    <path
+        d="M 0,297 4.319727,290.95239 8.6394566,297 Z"
+        style="fill:#eeeeee;stroke:none;" />
+    </g>
+</svg>
