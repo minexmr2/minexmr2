@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+    <head>
+        <title>monero-pool</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {
+                font-family: "Courier New", Courier, monospace;
+            }
+            header {
+                font-size: larger;
+                font-weight: bold;
+                padding-bottom: 1em;
+            }
+            table {
+                padding-bottom: 1em;
+            }
+            td {
+                vertical-align: top;
+                white-space: nowrap;
+            }
+            td:last-child {
+                white-space: unset;
+            }
+            .miner {
+                display: none;
+            }
+            #address {
+                min-width: 10ch;
+                max-width: 10ch;
+                overflow: hidden;
+                border-bottom: 1px dashed black;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                word-wrap: unset;
+            }
+            #address:focus {
+                outline: 0px solid transparent;
+                text-overflow: initial;
+                white-space: initial;
+                word-wrap: break-word;
+            }
+        </style>
+    </head>
+    <body>
+        <header>Monero Mining Pool</header>
+        <table>
+            <tr><td>Pool HR: </td><td id="pool_hashrate"></td></tr>
+            <tr><td>Network HR: </td><td id="network_hashrate"></td></tr>
+            <tr><td>Network height: </td><td id="network_height"></td></tr>
+            <tr><td>Blocks found: </td><td id="pool_blocks_found"></td></tr>
+            <tr><td>Last block found: </td><td id="last_block_found"></td></tr>
+            <tr><td>Last template: </td><td id="last_template_fetched"></td></tr>
+            <tr><td>Round HR: </td><td id="round_hashrate"></td></tr>
+            <tr><td>Round hashes: </td><td id="round_hashes"></td></tr>
+            <tr><td>Payment threshold: </td><td id="payment_threshold"></td></tr>
+            <tr><td>Pool fee: </td><td id="pool_fee"></td></tr>
+            <tr><td>Pool port: </td><td id="pool_port"></td></tr>
+            <tr><td>Pool SSL port: </td><td id="pool_ssl_port"></td></tr>
+            <tr><td>Allow self-select: </td><td id="allow_self_select"></td></tr>
+            <tr><td>Miners connected: </td><td id="connected_miners"></td></tr>
+            <tr class="miner"><td>Your HR: </td><td id="miner_hashrate"></td></tr>
+            <tr class="miner"><td>Balance due: </td><td id="miner_balance"></td></tr>
+            <tr><td>Miner address: </td><td id="address" contenteditable="true"></td></tr>
+        </table>
+        <small><a href="https://github.com/jtgrassie/monero-pool">https://github.com/jtgrassie/monero-pool</a></small>
+        <script>
+            function format_last_time(last)
+            {
+                var now = new Date().getTime() / 1000;
+                var diff = now - last;
+                var v;
+                if (last == 0)
+                    return "None yet";
+                else if (diff <= 0)
+                    return "Just now";
+                else if (diff < 60)
+                {
+                    v = parseInt(diff);
+                    return v + " second" + (v != 1 ? "s" : "") + " ago";
+                }
+                else if (diff < 3600)
+                {
+                    v = parseInt(diff/60);
+                    return v + " minute" + (v != 1 ? "s" : "") + " ago";
+                }
+                else if (diff < 86400)
+                {
+                    v = parseInt(diff/3600);
+                    return v + " hour" + (v != 1 ? "s" : "") + " ago";
+                }
+                else
+                {
+                    v = parseInt(diff/86400);
+                    return v + " day" + (v != 1 ? "s" : "") + " ago";
+                }
+            }
+
+            function max_precision(n, p)
+            {
+                return parseFloat(parseFloat(n).toFixed(p));
+            }
+
+            function format_hashes(h)
+            {
+                if (h < 1e-12)
+                    return "0 H";
+                else if (h < 1e-9)
+                    return max_precision(h*1e+12, 0) + " pH";
+                else if (h < 1e-6)
+                    return max_precision(h*1e+9, 0) + " nH";
+                else if (h < 1e-3)
+                    return max_precision(h*1e+6, 0) + " μH";
+                else if (h < 1)
+                    return max_precision(h*1e+3, 0) + " mH";
+                else if (h < 1e+3)
+                    return parseInt(h) + " H";
+                else if (h < 1e+6)
+                    return max_precision(h*1e-3, 2) + " KH";
+                else if (h < 1e+9)
+                    return max_precision(h*1e-6, 2) + " MH";
+                else
+                    return max_precision(h*1e-9, 2) + " GH";
+            }
+
+            function format_hashrate(h)
+            {
+                return format_hashes(h) + "/s";
+            }
+
+            function format_round_hashrate(round_hashes, last_block_found)
+            {
+                var now = new Date().getTime() / 1000;
+                var diff = now - last_block_found;
+                if (last_block_found == 0)
+                    return 0;
+                if (diff <= 0)
+                    return 0;
+                return format_hashrate(round_hashes / diff);
+            }
+
+            var wf = document.querySelector("#address");
+            var xhr = new XMLHttpRequest();
+            var rhr = document.querySelector("#round_hashrate");
+
+            xhr.onload = function()
+            {
+                var stats = JSON.parse(xhr.responseText);
+                for (var e in stats)
+                {
+                    var el = document.querySelector("#"+e);
+                    if (!el)
+                        continue;
+                    if (/^last/.test(e))
+                        el.innerHTML = format_last_time(stats[e]);
+                    else if (/hashrate/.test(e))
+                        el.innerHTML = format_hashrate(stats[e]);
+                    else if (e == "pool_fee")
+                        el.innerHTML = (stats[e]*100) + "%";
+                    else if (e == "allow_self_select")
+                        el.innerHTML = stats[e] == 1 ? "Yes" : "No";
+                    else if (e == "round_hashes")
+                    {
+                        el.innerHTML = max_precision(stats[e]*100 /
+                            stats["network_difficulty"], 1) + "%" +
+                            " (" + format_hashes(stats[e]) + " / " +
+                            format_hashes(stats["network_difficulty"]) + ")";
+                        rhr.innerHTML = format_round_hashrate(
+                            stats["round_hashes"], stats["last_block_found"]);
+                    }
+                    else if (e == "pool_ssl_port")
+                    {
+                        el.closest("tr").style = "display: " +
+                            (stats[e] == 0 ? "none;" : "table-row;");
+                        el.innerHTML = stats[e];
+                    }
+                    else
+                        el.innerHTML = stats[e];
+                }
+            };
+
+            wf.onblur = function(e)
+            {
+                var d = new Date();
+                d.setTime(d.getTime() + (86400 * 365 * 1000));
+                document.cookie = "wa=" + this.innerText +
+                    ";expires=" + d.toGMTString();
+                window.location.reload();
+                return false;
+            };
+
+            window.onload = function()
+            {
+                var jar = {};
+                for (var kv, i=0, kvs=document.cookie.split(/\s*;\s*/); i<kvs.length; i++)
+                {
+                    kv = kvs[i].split(/\s*=\s*/);
+                    if (kv.length > 1)
+                    {
+                        try {
+                            jar[kv[0]] = kv[1];
+                        } catch (e) {}
+                    }
+                }
+                if (jar.wa &&
+                    /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/.test(jar.wa))
+                {
+                    var m = document.querySelectorAll(".miner");
+                    for (var i=0; i<m.length; i++)
+                    {
+                        m[i].style = "display: table-row;";
+                    }
+                    wf.innerText = jar.wa;
+                }
+                var get_stats = function()
+                {
+                    xhr.open("GET", "/stats");
+                    xhr.send(null);
+                };
+                setInterval(get_stats, 30000);
+                get_stats();
+            };
+        </script>
+    </body>
+</html>
