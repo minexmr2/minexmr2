@@ -9,6 +9,8 @@ utilized by [miningpoolstats.stream](https://miningpoolstats.stream/monero).
 - 🔭 I’m currently working on [SChernykh p2pool](https://github.com/SChernykh/p2pool) support to redirect all the mining traffic there.
 But all the statistics, billing and fault-tolerant logic remains here, in this minexmr2.com pool implementation.
 
+⚡ Aug 25 2022: [minexmr2.com](https://minexmr2.com) status online and fully operational; 1st block found few days ago.
+
 <!--
 **minexmr2/minexmr2** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
