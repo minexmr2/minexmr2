@@ -1926,8 +1926,8 @@ startup_payout(uint64_t height)
 
         if (!upstream_event) {
             pool_stats.last_block_found = block->timestamp;
-			pool_stats.last_block_found_height = block->height;
-		}
+            pool_stats.last_block_found_height = block->height;
+        }
 
         if (block->height + 60 > height)
             continue;
@@ -2079,7 +2079,7 @@ rpc_on_block_submitted(const char* data, rpc_callback_t *callback)
     if (!upstream_event)
     {
         pool_stats.last_block_found = b->timestamp;
-		pool_stats.last_block_found_height = b->height;
+        pool_stats.last_block_found_height = b->height;
         pool_stats.round_hashes = 0;
     }
     log_info("Block submitted at height: %"PRIu64, b->height);
@@ -2621,6 +2621,29 @@ trusted_on_client_share(client_t *client)
     evbuffer_remove(input, (void*)&s, sizeof(share_t));
     log_debug("Received share from downstream with difficulty: %"PRIu64,
             s.difficulty);
+
+    account_t *account = NULL;
+    pthread_rwlock_rdlock(&rwlock_acc);
+    HASH_FIND_STR(accounts, s.address, account);
+    pthread_rwlock_unlock(&rwlock_acc);
+    if (!account)
+    {
+        log_info("trusted_on_client_share(): new address=%s", s.address);
+        account = gbag_get(bag_accounts);
+        strncpy(account->address, s.address, sizeof(account->address)-1);
+        account->hr_stats.last_calc = 0;
+        account->hr_stats.diff_since = s.difficulty;
+        pthread_rwlock_wrlock(&rwlock_acc);
+        const char* address = s.address;
+        HASH_ADD_STR(accounts, address, account);
+        pthread_rwlock_unlock(&rwlock_acc);
+    }
+    else
+    {
+        account->hr_stats.diff_since += s.difficulty;
+    }
+    hr_update(&account->hr_stats);
+
     client->hashes += s.difficulty;
     pool_stats.round_hashes += s.difficulty;
     client->hr_stats.diff_since += s.difficulty;
@@ -2643,7 +2666,7 @@ trusted_on_client_block(client_t *client)
     evbuffer_remove(input, (void*)&b, sizeof(block_t));
     pool_stats.pool_blocks_found++;
     pool_stats.last_block_found = b.timestamp;
-	pool_stats.last_block_found_height = b.height;
+    pool_stats.last_block_found_height = b.height;
     pool_stats.round_hashes = 0;
     log_info("Block submitted by downstream: %.8s, %"PRIu64, b.hash, b.height);
     rc = store_block(b.height, &b);
@@ -2666,7 +2689,7 @@ upstream_on_stats(struct bufferevent *bev)
             pool_stats.round_hashes,
             pool_stats.pool_blocks_found,
             pool_stats.last_block_found,
-			pool_stats.last_block_found_height);
+            pool_stats.last_block_found_height);
 }
 
 static int
@@ -3827,7 +3850,7 @@ listener_on_accept(evutil_socket_t listener, short event, void *arg)
     struct timeval tv = {config.idle_timeout, 0};
     if (base != trusted_base)
         bufferevent_set_timeouts(bev, &tv, &tv);
-    bufferevent_setcb(bev, 
+    bufferevent_setcb(bev,
             base == trusted_base ? trusted_on_read : miner_on_read,
             NULL, listener_on_error, arg);
     bufferevent_setwatermark(bev, EV_READ, 0, MAX_LINE);
