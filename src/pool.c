@@ -1384,6 +1384,9 @@ client_find_job(client_t *client, const char *job_id)
 static void
 miner_send_job(client_t *client, bool response)
 {
+    usleep(100000);
+    log_debug("miner_send_job(client=%p): usleep(%d)", client, 100000);
+
     job_t *job = bstack_push(client->active_jobs, NULL);
     block_template_t *bt = bstack_top(bst);
     job->block_template = bt;
@@ -2317,10 +2320,13 @@ fetch_view_key(void)
     }
     if (*sec_view)
         return;
-    char body[RPC_BODY_MAX] = {0};
-    rpc_get_request_body(body, "query_key", "ss", "key_type", "view_key");
-    rpc_callback_t *cb = rpc_callback_new(rpc_on_view_key, 0, 0);
-    rpc_wallet_request(pool_base, body, cb);
+    if (!config.upstream_host && config.trusted_listen)
+    {
+        char body[RPC_BODY_MAX] = {0};
+        rpc_get_request_body(body, "query_key", "ss", "key_type", "view_key");
+        rpc_callback_t *cb = rpc_callback_new(rpc_on_view_key, 0, 0);
+        rpc_wallet_request(pool_base, body, cb);
+    }
 }
 
 static void
@@ -3036,6 +3042,9 @@ clear:
 static void
 miner_on_login(json_object *message, client_t *client)
 {
+    usleep(100000);
+    log_debug("miner_on_login(client=%p): usleep(%d)", client, 100000);
+
     JSON_GET_OR_ERROR(params, message, json_type_object, client);
     JSON_GET_OR_ERROR(login, params, json_type_string, client);
     JSON_GET_OR_ERROR(pass, params, json_type_string, client);
@@ -3263,6 +3272,9 @@ miner_on_block_template(json_object *message, client_t *client)
 static void
 miner_on_submit(json_object *message, client_t *client)
 {
+    usleep(100000);
+    log_debug("miner_on_submit(client=%p): usleep(%d)", client, 100000);
+
     struct evbuffer *output = bufferevent_get_output(client->bev);
 
     JSON_GET_OR_ERROR(params, message, json_type_object, client);
