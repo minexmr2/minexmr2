@@ -1,0 +1,36 @@
+version: "2.2"
+networks:
+  monero-pool:
+    external: false
+
+volumes:
+  p2pool:
+    external: false
+
+services:
+  p2pool:
+    build:
+      context: docker/p2pool
+      dockerfile: Dockerfile
+      args:
+        repo: https://github.com/SChernykh/p2pool
+        ref: 9a5be0a32117836d3adebdbc7befb3c0ea56c885
+    restart: always
+    tty: true
+    stdin_open: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - monero-pool
+    volumes:
+      - p2pool:/p2pool/data:rw
+      - "${HUGEPAGES_MOUNT}:/dev/hugepages:rw"
+    ports:
+      - "${P2POOL_STRATUM_PORT}:${P2POOL_STRATUM_PORT}"
+      - "${P2POOL_P2P_PORT}:${P2POOL_P2P_PORT}"
+    command: >-
+      --wallet "${P2POOL_WALLET_ADDRESS}"
+      --stratum "0.0.0.0:${P2POOL_STRATUM_PORT}" --p2p "0.0.0.0:${P2POOL_P2P_PORT}"
+      --addpeers "${P2POOL_SEED_PEERS}"
+      --loglevel "${P2POOL_LOG_LEVEL}"
