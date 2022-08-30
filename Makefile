@@ -1,21 +1,21 @@
 #  Copyright (c) 2018, The Monero Project
-#  
+#
 #  All rights reserved.
-#  
+#
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions are met:
-#  
+#
 #  1. Redistributions of source code must retain the above copyright notice,
 #  this list of conditions and the following disclaimer.
-#  
+#
 #  2. Redistributions in binary form must reproduce the above copyright notice,
 #  this list of conditions and the following disclaimer in the documentation
 #  and/or other materials provided with the distribution.
-#  
+#
 #  3. Neither the name of the copyright holder nor the names of its
 #  contributors may be used to endorse or promote products derived from this
 #  software without specific prior written permission.
-#  
+#
 #  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 #  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -36,13 +36,21 @@ ifeq ($(MAKECMDGOALS),release)
   TYPE = release
 endif
 
+ifeq ($(MAKECMDGOALS),debug_p2pool)
+  TYPE = debug_p2pool
+endif
+
+ifeq ($(MAKECMDGOALS),release_p2pool)
+  TYPE = release_p2pool
+endif
+
 ifeq ($(origin MONERO_BUILD_ROOT), undefined)
   MONERO_BUILD_ROOT = \
-    ${MONERO_ROOT}/build/$(shell echo `uname | \
-    sed -e 's|[:/\\ \(\)]|_|g'`/` \
-    git -C ${MONERO_ROOT} branch | \
-    grep '\* ' | cut -f2- -d' '| \
-    sed -e 's|[:/\\ \(\)]|_|g'`)/release
+	${MONERO_ROOT}/build/$(shell echo `uname | \
+	sed -e 's|[:/\\ \(\)]|_|g'`/` \
+	git -C ${MONERO_ROOT} branch | \
+	grep '\* ' | cut -f2- -d' '| \
+	sed -e 's|[:/\\ \(\)]|_|g'`)/release
 endif
 
 MONERO_INC = \
@@ -76,7 +84,7 @@ ifeq ($(wildcard ${LIBRX}),${LIBRX})
   CPPDEFS += HAVE_RX
 else
   ifneq ($(MAKECMDGOALS),clean)
-    $(warning Building without RandomX!)
+	$(warning Building without RandomX!)
   endif
 endif
 
@@ -89,18 +97,30 @@ LDPARAM += -fPIC -pie
 ifeq ($(OS), Darwin)
   CXXFLAGS += -stdlib=libc++
   CPPDEFS += HAVE_MEMSET_S
-  LDPARAM = 
+  LDPARAM =
 endif
 
 ifeq ($(TYPE),debug)
-  CFLAGS += -g
-  CXXFLAGS += -g
+  CFLAGS += -pg
+  CXXFLAGS += -pg
   CPPDEFS += DEBUG
 endif
 
 ifeq ($(TYPE), release)
   CFLAGS += -O3
   CXXFLAGS += -O3
+endif
+
+ifeq ($(TYPE),debug_p2pool)
+  CFLAGS += -pg
+  CXXFLAGS += -pg
+  CPPDEFS += DEBUG P2POOL
+endif
+
+ifeq ($(TYPE), release_p2pool)
+  CFLAGS += -O3
+  CXXFLAGS += -O3
+  CPPDEFS += P2POOL
 endif
 
 LDPARAM += $(LDFLAGS)
@@ -133,7 +153,7 @@ PKG_LIBS := $(shell pkg-config \
   libsodium \
   --libs)
 
-STATIC_LIBS = 
+STATIC_LIBS =
 DLIBS =
 
 INCPATH := $(DIRS) ${MONERO_INC} /opt/local/include /usr/local/include
@@ -168,11 +188,11 @@ CDFILES := $(addprefix $(STORE)/,$(CSOURCE:.c=.d))
 SDFILES := $(addprefix $(STORE)/,$(SSOURCE:.S=.d))
 
 
-.PHONY: clean dirs debug release preflight
+.PHONY: clean dirs debug release debug_p2pool release_p2pool preflight
 
 $(TARGET): preflight dirs $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS)
 	@echo Linking $(OBJECTS)...
-	$(CXX) -o $(STORE)/$(TARGET) \
+	$(CXX) $(CFLAGS) -o $(STORE)/$(TARGET) \
 	  $(OBJECTS) $(COBJECTS) $(SOBJECTS) $(HTMLOBJECTS) \
 	  $(LDPARAM) $(MONERO_LIBS) \
 	  $(foreach LIBRARY, $(LIBS),-l$(LIBRARY)) \
@@ -219,7 +239,7 @@ $(STORE)/%.o: %.html
 # Empty rule to prevent problems when a header is deleted.
 %.h: ;
 
-debug release : $(TARGET)
+debug release debug_p2pool release_p2pool: $(TARGET)
 
 clean:
 	@echo Making clean.
@@ -235,7 +255,7 @@ dirs:
 preflight:
 ifeq ($(origin MONERO_ROOT), undefined)
   $(error You need to set an environment variable MONERO_ROOT \
-    to your monero repository root)
+	to your monero repository root)
 endif
 ifndef PKG_LIBS
   $(error Missing dependencies)

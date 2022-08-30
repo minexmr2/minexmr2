@@ -29,6 +29,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef P2POOL
+#pragma message "P2POOL support enabled (experimental!!!)"
+#endif
+
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -242,6 +246,11 @@ typedef struct client_t
     uint32_t downstream_accounts;
     uint64_t req_diff;
     UT_hash_handle hh;
+#ifdef P2POOL
+    struct bufferevent *p2pool_event;
+    char* miner_login_line;
+    size_t miner_login_line_len;
+#endif
 } client_t;
 
 typedef struct account_t
@@ -300,6 +309,8 @@ static struct event *timer_120s;
 static struct event *timer_10m;
 static struct event *signal_usr1;
 static uint32_t extra_nonce;
+static uint32_t extra_nonce_begin_range;
+static uint32_t extra_nonce_end_range;
 static uint32_t instance_id;
 static block_t block_headers_range[BLOCK_HEADERS_RANGE];
 static MDB_env *env;
@@ -1384,6 +1395,11 @@ client_find_job(client_t *client, const char *job_id)
 static void
 miner_send_job(client_t *client, bool response)
 {
+#ifdef P2POOL
+    log_fatal("miner_send_job() should not be called");
+    abort();
+#endif
+
     usleep(100000);
     log_debug("miner_send_job(client=%p): usleep(%d)", client, 100000);
 
@@ -1396,6 +1412,11 @@ miner_send_job(client_t *client, bool response)
         uuid_generate(job->id);
         retarget(client, job);
         ++extra_nonce;
+        if (extra_nonce == extra_nonce_end_range)
+        {
+            log_info("extra_nonce end of range %u reached, set to begin %u", extra_nonce_end_range, extra_nonce_begin_range);
+            extra_nonce = extra_nonce_begin_range;
+        }
         job->extra_nonce = extra_nonce;
         char body[JOB_BODY_MAX] = {0};
         stratum_get_job_body_ss(body, client, response);
@@ -2844,6 +2865,154 @@ bail:
     freeaddrinfo(info);
 }
 
+#ifdef P2POOL
+static void
+client_clear(struct bufferevent *bev);
+
+static void p2pool_connect(client_t *client);
+
+static void
+p2pool_on_read(struct bufferevent *bev, void *ctx)
+{
+    const char *too_long_p2pool = "Removing client. Message from P2POOL too long.";
+
+    client_t *client = (client_t*)ctx;
+    log_debug("p2pool_on_read(client=%p)", client);
+    struct evbuffer *input = bufferevent_get_input(bev);
+    struct evbuffer *output = bufferevent_get_output(client->bev);
+    struct evbuffer_ptr tag;
+    unsigned char tnt[9] = {0};
+
+    char* line = NULL;
+    size_t n = 0;
+
+    input = bufferevent_get_input(bev);
+    size_t len = evbuffer_get_length(input);
+    if (len > MAX_LINE)
+    {
+        char body[ERROR_BODY_MAX] = {0};
+        stratum_get_error_body(body, client->json_id, too_long_p2pool);
+        evbuffer_add(output, body, strlen(body));
+        log_warn("[%s:%d] %s", client->host, client->port, too_long_p2pool);
+        evbuffer_drain(input, len);
+        client_clear(client->bev);
+        goto unlock;
+    }
+
+    while ((line = evbuffer_readln(input, &n, EVBUFFER_EOL_LF)))
+    {
+        /*
+        tag = evbuffer_search(input, (const char*) msgbin, 8, NULL);
+        if (tag.pos < 0)
+            log_error("Bad message from p2pool");
+        */
+
+        if (n > (MAX_LINE-2)) {
+            log_warn("p2pool_on_read(): n=%d, MAX_LINE=%d", n, MAX_LINE);
+            continue;
+        }
+
+        log_debug("***p2pool_on_read evbuffer_readln %d ECHO TO MINER***", n);
+        log_debug(line);
+        log_debug("***");
+
+        char linebuf[MAX_LINE];
+        bzero(linebuf, MAX_LINE);
+        memcpy(linebuf, line, n);
+        linebuf[n] = '\n';
+
+        struct evbuffer *output = bufferevent_get_output(client->bev);
+        evbuffer_add(output, linebuf, n+1);
+
+        free(line);
+    }
+
+    //evbuffer_drain(input, len); //only if error reading message
+
+unlock:
+    pthread_mutex_lock(&mutex_clients);
+    clients_reading--;
+    pthread_cond_signal(&cond_clients);
+    pthread_mutex_unlock(&mutex_clients);
+}
+
+// static const char* tmpjson_slashn = "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"48vtRRYH7NUb8c4o9wAxWD1daB4NcwooD9TW4p2oLRMC9g8YDJzUska3NQmb4kyzKZZZBepUaodAmcKtgrstPXwr9f2JCya\",\"pass\":\"x\",\"agent\":\"XMRig/6.18.0 (Linux x86_64) libuv/1.44.1 gcc/9.3.0\",\"algo\":[\"rx/0\",\"rx/wow\"]}}\n";
+
+static void p2pool_send_login(client_t *client)
+{
+    log_debug("p2pool_send_login(client=%p)", client);
+    log_debug("Sending message login p2pool");
+    struct evbuffer *output = bufferevent_get_output(client->p2pool_event);
+    evbuffer_add(output, client->miner_login_line, client->miner_login_line_len);
+}
+
+static void
+p2pool_on_event(struct bufferevent *bev, short error, void *ctx)
+{
+    client_t *client = (client_t*)ctx;
+    log_debug("p2pool_on_event(client=%p)", client);
+
+    if (error & BEV_EVENT_CONNECTED)
+    {
+        log_info("Connected to p2pool: %s:%d",
+                "172.17.0.1", 3333);
+        p2pool_send_login(client);
+        return;
+    }
+    if (error & BEV_EVENT_EOF)
+    {
+        log_debug("p2pool disconnected");
+    }
+    else if (error & BEV_EVENT_ERROR)
+    {
+        log_debug("p2pool connection error: %d", errno);
+    }
+    else if (error & BEV_EVENT_TIMEOUT)
+    {
+        log_debug("p2pool timeout");
+    }
+
+    log_warn("No connection to p2pool; delete client");
+
+    client_clear(client->bev);
+}
+
+static void
+p2pool_connect(client_t *client)
+{
+    log_debug("p2pool_connect(client=%p)", client);
+
+    struct addrinfo *info = NULL;
+    int rc = 0;
+    char port[6] = {0};
+
+    sprintf(port, "%d", 3333);
+    if ((rc = getaddrinfo("172.17.0.1", port, 0, &info)))
+    {
+        log_fatal("Error parsing p2pool host: %s", gai_strerror(rc));
+        return;
+    }
+
+    client->p2pool_event = bufferevent_socket_new(pool_base, -1,
+            BEV_OPT_CLOSE_ON_FREE);
+
+    if (bufferevent_socket_connect(client->p2pool_event,
+                info->ai_addr, info->ai_addrlen) < 0)
+    {
+        perror("connect");
+        goto bail;
+    }
+
+    bufferevent_setcb(client->p2pool_event,
+            p2pool_on_read, NULL, p2pool_on_event, client);
+    bufferevent_enable(client->p2pool_event, EV_READ|EV_WRITE);
+    evutil_make_socket_nonblocking(bufferevent_getfd(client->p2pool_event));
+
+bail:
+    freeaddrinfo(info);
+}
+#endif
+
 static void
 timer_on_10s(int fd, short kind, void *ctx)
 {
@@ -2967,6 +3136,11 @@ client_add(int fd, struct sockaddr_storage *ss,
     c->bev = bev;
     c->connected_since = time(NULL);
     c->downstream = downstream;
+#ifdef P2POOL
+    c->p2pool_event = NULL;
+    c->miner_login_line = NULL;
+    c->miner_login_line_len = 0;
+#endif
     if ((rc = getnameinfo((struct sockaddr*)ss, sizeof(*ss),
                     c->host, MAX_HOST, NULL, 0, NI_NUMERICHOST)))
     {
@@ -3032,6 +3206,19 @@ client_clear(struct bufferevent *bev)
         account->worker_count--;
 clear:
     client_clear_jobs(client);
+#ifdef P2POOL
+    if (client->p2pool_event)
+    {
+        bufferevent_free(client->p2pool_event);
+        client->p2pool_event = NULL;
+    }
+    if (client->miner_login_line)
+    {
+        free(client->miner_login_line);
+        client->miner_login_line = NULL;
+        client->miner_login_line_len = 0;
+    }
+#endif
     pthread_rwlock_wrlock(&rwlock_cfd);
     HASH_DEL(clients_by_fd, client);
     pthread_rwlock_unlock(&rwlock_cfd);
@@ -3649,25 +3836,99 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         }
         else if (strcmp(method_name, "login") == 0)
         {
+#ifdef P2POOL
+            if (n > (MAX_LINE-2)) {
+                log_warn("miner_on_read(login): n=%d, MAX_LINE=%d", n, MAX_LINE);
+                continue;
+            }
+
+            if (client->miner_login_line)
+            {
+                free(client->miner_login_line);
+                client->miner_login_line = NULL;
+                client->miner_login_line_len = 0;
+            }
+
+            client->miner_login_line = (char*)malloc(MAX_LINE);
+            bzero(client->miner_login_line, MAX_LINE);
+            memcpy(client->miner_login_line, line, n);
+            client->miner_login_line[n] = '\n';
+            client->miner_login_line_len = n+1;
+
+            p2pool_connect(client);
+#else
             miner_on_login(message, client);
+#endif
         }
         else if (strcmp(method_name, "block_template") == 0)
         {
+#ifdef P2POOL
+            log_fatal("p2pool's miner_on_block_template() not implemented yet");
+            abort();
+#else
             miner_on_block_template(message, client);
+#endif
         }
         else if (strcmp(method_name, "submit") == 0)
         {
+#ifdef P2POOL
+            log_warn("miner_on_read(submit) is called, but not yet implemented - ECHO TO P2POOL");
+
+            if (n > (MAX_LINE-2)) {
+                log_warn("miner_on_read(submit): n=%d, MAX_LINE=%d", n, MAX_LINE);
+                continue;
+            }
+
+            log_debug("***miner_on_read(submit) evbuffer_readln %d***", n);
+            log_debug(line);
+            log_debug("***");
+
+            char linebuf[MAX_LINE];
+            bzero(linebuf, MAX_LINE);
+            memcpy(linebuf, line, n);
+            linebuf[n] = '\n';
+
+            struct evbuffer *output = bufferevent_get_output(client->p2pool_event);
+            evbuffer_add(output, linebuf, n+1);
+#else
             miner_on_submit(message, client);
+#endif
         }
         else if (strcmp(method_name, "getjob") == 0)
         {
+#ifdef P2POOL
+            log_fatal("p2pool's miner_send_job() not implemented yet");
+            abort();
+#else
             miner_send_job(client, false);
+#endif
         }
         else if (strcmp(method_name, "keepalived") == 0)
         {
+#ifdef P2POOL
+            log_warn("miner_on_read(keepalived) is called, AND implemented - ECHO TO P2POOL");
+
+            if (n > (MAX_LINE-2)) {
+                log_warn("miner_on_read(keepalived): n=%d, MAX_LINE=%d", n, MAX_LINE);
+                continue;
+            }
+
+            log_debug("***miner_on_read(keepalived) evbuffer_readln %d***", n);
+            log_debug(line);
+            log_debug("***");
+
+            char linebuf[MAX_LINE];
+            bzero(linebuf, MAX_LINE);
+            memcpy(linebuf, line, n);
+            linebuf[n] = '\n';
+
+            struct evbuffer *output = bufferevent_get_output(client->p2pool_event);
+            evbuffer_add(output, linebuf, n+1);
+#else
             char body[STATUS_BODY_MAX] = {0};
             stratum_get_status_body(body, client->json_id, "KEEPALIVED");
             evbuffer_add(output, body, strlen(body));
+#endif
         }
         else
         {
@@ -4674,27 +4935,46 @@ int main(int argc, char **argv)
             config.processes = -1;
         }
         nproc = config.processes < 0 ? nproc : config.processes;
+        if (nproc > 3)
+        {
+            log_warn("Maximum number of processes supported is 4, reducing requested nproc from %d to 3", nproc);
+            nproc = 3;
+        }
         log_info("Launching processes: %d", nproc);
         int pid = 0;
         while(nproc--)
         {
             pid = fork();
-            if (pid < 1)
+            if (pid == 0)
+            {
+            // pid == 0: one of child process
+            // TODO: multi-server configuration needs whole new logic to distibute extra_nonce among downstreams!
+            log_info("Process %d: static extra_nonce range: [%u,%u)", nproc, extra_nonce, extra_nonce + 1024*1024*1024);
+            }
+            if (pid < 1) // either child or fail
                 break;
             if (pid > 0)
+            {
+                // pod > 0: parent process
+                extra_nonce += 1024*1024*1024;
                 continue;
+            }
         }
-        if (pid > 0)
+        if (pid > 0) // child, not fail
         {
             while (waitpid(-1, 0, 0) > 0)
             {}
             _exit(0);
         }
-        else if (pid == 0 && nproc == 0)
+        else if (pid == 0 && nproc == 0) // no fork(), just 1 process requested
             abattoir = true;
     }
     else
         abattoir = true;
+
+    extra_nonce_begin_range = extra_nonce;
+    extra_nonce_end_range = extra_nonce + 1024*1024*1024;
+    log_info("Set extra_nonce range to [%u,%u)", extra_nonce_begin_range, extra_nonce_end_range);
 
     log_set_udata(&mutex_log);
     log_set_lock(log_lock);
@@ -4737,6 +5017,10 @@ int main(int argc, char **argv)
     uic.payment_threshold = config.payment_threshold;
     if (config.webui_port)
         start_web_ui(&uic);
+
+#ifdef P2POOL
+    log_info("P2POOL support compiled");
+#endif
 
     run();
 

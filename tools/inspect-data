@@ -82,7 +82,8 @@ def print_balance(path):
     with env.begin(db=balance) as txn:
         with txn.cursor() as curs:
             for key, value in curs:
-                address = format_address(address_from_key(key))
+                #address = format_address(address_from_key(key))
+                address = address_from_key(key)
                 amount = c_longlong.from_buffer_copy(value).value
                 amount = format_amount(amount)
                 print('{}\t{}'.format(address, amount))
