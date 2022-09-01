@@ -90,7 +90,7 @@ void log_set_quiet(int enable) {
 }
 
 
-void log_log(int level, const char *file, int line, const char *fmt, ...) {
+void log_log(int level, const char *file, int line, const char *func, const char *fmt, ...) {
   if (level < L.level) {
     return;
   }
@@ -109,10 +109,10 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", lt)] = '\0';
 #ifdef LOG_USE_COLOR
     fprintf(
-      stderr, "%s %d %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m ",
-      buf, getpid(), level_colors[level], level_names[level], file, line);
+      stderr, "%s %d %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m %s(): ",
+      buf, getpid(), level_colors[level], level_names[level], file, line, func);
 #else
-    fprintf(stderr, "%s %d %-5s %s:%d: ", buf, getpid(), level_names[level], file, line);
+    fprintf(stderr, "%s %d %-5s %s:%d: %s(): ", buf, getpid(), level_names[level], file, line, func);
 #endif
     va_start(args, fmt);
     vfprintf(stderr, fmt, args);
@@ -126,7 +126,7 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     va_list args;
     char buf[32];
     buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", lt)] = '\0';
-    fprintf(L.fp, "%s %d %-5s %s:%d: ", buf, getpid(), level_names[level], file, line);
+    fprintf(L.fp, "%s %d %-5s %s:%d: %s(): ", buf, getpid(), level_names[level], file, line, func);
     va_start(args, fmt);
     vfprintf(L.fp, fmt, args);
     va_end(args);

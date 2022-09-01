@@ -98,6 +98,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MAX_DOWNSTREAM 8
 #define MAX_HOST 256
 #define MAX_RIG_ID 32
+#ifdef P2POOL
+#define MAX_JOB_ID 16
+#define MAX_JOBS_PER_CLIENT 64
+#define MAX_JOBS_PER_CLIENT_LOG 6
+#define MAX_REQS_PER_JOB 16
+#define MAX_REQS_PER_JOB_LOG 4
+#endif
 
 #define uint128_t unsigned __int128
 
@@ -222,6 +229,26 @@ typedef struct job_t
     block_template_t *miner_template;
 } job_t;
 
+#ifdef P2POOL
+typedef struct p2pool_submission_t
+{
+    int req_id;
+    bool accepted;
+    time_t when_submitted; // when submitted
+} p2pool_submission_t;
+
+typedef struct p2pool_job_t
+{
+    char job_id[MAX_JOB_ID];
+    uint64_t height;
+    uint64_t target;
+    //char address[ADDRESS_MAX]; // This is a client's field
+    time_t when_received; // when received
+    p2pool_submission_t reqs[MAX_REQS_PER_JOB];
+    uint16_t reqs_pos: MAX_REQS_PER_JOB_LOG;
+} p2pool_job_t;
+#endif
+
 typedef struct client_t
 {
     int fd;
@@ -250,6 +277,8 @@ typedef struct client_t
     struct bufferevent *p2pool_event;
     char* miner_login_line;
     size_t miner_login_line_len;
+    p2pool_job_t p2pool_jobs[MAX_JOBS_PER_CLIENT];
+    uint16_t p2pool_jobs_pos: MAX_JOBS_PER_CLIENT_LOG;
 #endif
 } client_t;
 
@@ -1076,7 +1105,8 @@ update_pool_hr(void)
     client_t *c = (client_t*)gbag_first(bag_clients);
     while ((c = gbag_next(bag_clients, 0)))
         hr += (uint64_t) c->hr_stats.avg[0];
-    log_debug("Pool hashrate: %"PRIu64, hr);
+    log_info("Pool hashrate: %"PRIu64, hr);
+    log_info("Pool hashrate accumulating downstreams: %d", (*config.trusted_listen) && (config.trusted_port));
     if (upstream_event)
         return;
     pool_stats.pool_hashrate = hr;
@@ -1396,12 +1426,12 @@ static void
 miner_send_job(client_t *client, bool response)
 {
 #ifdef P2POOL
-    log_fatal("miner_send_job() should not be called");
-    abort();
+    log_fatal("should not be called");
+    return;
 #endif
 
     usleep(100000);
-    log_debug("miner_send_job(client=%p): usleep(%d)", client, 100000);
+    log_debug("client=%p: usleep %d", client, 100000);
 
     job_t *job = bstack_push(client->active_jobs, NULL);
     block_template_t *bt = bstack_top(bst);
@@ -1450,6 +1480,11 @@ miner_send_job(client_t *client, bool response)
     unsigned char *p = block;
     p += bt->reserved_offset;
     ++extra_nonce;
+    if (extra_nonce == extra_nonce_end_range)
+    {
+        log_info("extra_nonce end of range %u reached, set to begin %u", extra_nonce_end_range, extra_nonce_begin_range);
+        extra_nonce = extra_nonce_begin_range;
+    }
     memcpy(p, &extra_nonce, sizeof(extra_nonce));
     job->extra_nonce = extra_nonce;
 
@@ -1636,7 +1671,7 @@ rpc_on_response(struct evhttp_request *req, void *arg)
 
     if (!req)
     {
-        log_error("Request failure. Aborting.");
+        log_error("Request to monerod http://%s:%d%s failure. Aborting.", config.rpc_host, config.rpc_port, RPC_PATH);
         rpc_callback_free(callback);
         return;
     }
@@ -1644,8 +1679,39 @@ rpc_on_response(struct evhttp_request *req, void *arg)
     int rc = evhttp_request_get_response_code(req);
     if (rc < 200 || rc >= 300)
     {
-        log_error("HTTP status code %d for %s. Aborting.",
-                rc, evhttp_request_get_uri(req));
+        log_error("HTTP status code %d for monerod http://%s:%d%s. Aborting.",
+                rc, config.rpc_host, config.rpc_port, evhttp_request_get_uri(req));
+        rpc_callback_free(callback);
+        return;
+    }
+
+    input = evhttp_request_get_input_buffer(req);
+    size_t len = evbuffer_get_length(input);
+    char body[len+1];
+    evbuffer_remove(input, body, len);
+    body[len] = '\0';
+    callback->cf(body, callback);
+    rpc_callback_free(callback);
+}
+
+static void
+rpc_on_response_wallet(struct evhttp_request *req, void *arg)
+{
+    struct evbuffer *input;
+    rpc_callback_t *callback = (rpc_callback_t*) arg;
+
+    if (!req)
+    {
+        log_error("Request failure to monero-wallet-rpc http://%s:%d%s. Aborting.", config.wallet_rpc_host, config.wallet_rpc_port, RPC_PATH);
+        rpc_callback_free(callback);
+        return;
+    }
+
+    int rc = evhttp_request_get_response_code(req);
+    if (rc < 200 || rc >= 300)
+    {
+        log_error("HTTP status code %d for monero-wallet-rpc http://%s:%d%s. Aborting.",
+                rc, config.wallet_rpc_host, config.wallet_rpc_port, evhttp_request_get_uri(req));
         rpc_callback_free(callback);
         return;
     }
@@ -1663,6 +1729,8 @@ static void
 rpc_request(struct event_base *base, const char *body,
         rpc_callback_t *callback)
 {
+    log_info("rpc_request to monerod http://%s:%d%s", config.rpc_host, config.rpc_port, RPC_PATH);
+
     struct evhttp_connection *con;
     struct evhttp_request *req;
     struct evkeyvalq *headers;
@@ -1685,6 +1753,8 @@ static void
 rpc_wallet_request(struct event_base *base, const char *body,
         rpc_callback_t *callback)
 {
+    log_info("rpc_request to monero-wallet-rpc http://%s:%d%s", config.wallet_rpc_host, config.wallet_rpc_port, RPC_PATH);
+
     struct evhttp_connection *con;
     struct evhttp_request *req;
     struct evkeyvalq *headers;
@@ -1694,7 +1764,7 @@ rpc_wallet_request(struct event_base *base, const char *body,
             config.wallet_rpc_host, config.wallet_rpc_port);
     evhttp_connection_free_on_completion(con);
     evhttp_connection_set_timeout(con, config.rpc_timeout);
-    req = evhttp_request_new(rpc_on_response, callback);
+    req = evhttp_request_new(rpc_on_response_wallet, callback);
     output = evhttp_request_get_output_buffer(req);
     evbuffer_add(output, body, strlen(body));
     headers = evhttp_request_get_output_headers(req);
@@ -2248,7 +2318,10 @@ static int
 send_payments(void)
 {
     if (*config.upstream_host || config.disable_payouts)
+    {
+        log_info("payments disabled: config.upstream_host=%s, config.disable_payouts=%d", config.upstream_host, config.disable_payouts);
         return 0;
+    }
     uint64_t threshold = 1000000000000 * config.payment_threshold;
     int rc = 0;
     char *err = NULL;
@@ -2333,21 +2406,28 @@ send_payments(void)
 static void
 fetch_view_key(void)
 {
+    log_info("fetch_view_key()...");
     if (*config.pool_view_key)
     {
         hex_to_bin(config.pool_view_key, 64, sec_view, 32);
-        log_info("Using pool view-key: %.4s<hidden>", config.pool_view_key);
+        log_info("fetch_view_key(config.pool_view_key) using pool view-key: %.4s<hidden>", config.pool_view_key);
         return;
     }
     if (*sec_view)
-        return;
-    if (!config.upstream_host && config.trusted_listen)
     {
+        log_info("fetch_view_key(sec_view)");
+        return;
+    }
+    if (!(*config.upstream_host) && (*config.trusted_listen))
+    {
+        log_info("fetch_view_key(monero-wallet-rpc)");
         char body[RPC_BODY_MAX] = {0};
         rpc_get_request_body(body, "query_key", "ss", "key_type", "view_key");
         rpc_callback_t *cb = rpc_callback_new(rpc_on_view_key, 0, 0);
         rpc_wallet_request(pool_base, body, cb);
+        return;
     }
+    log_info("fetch_view_key(): nothing to do in config.upstream_host=%s,config.trusted_listen=%s", config.upstream_host, config.trusted_listen);
 }
 
 static void
@@ -2871,13 +2951,90 @@ client_clear(struct bufferevent *bev);
 
 static void p2pool_connect(client_t *client);
 
+static void p2pool_init_jobs(client_t *client)
+{
+    log_debug("client=%p", client);
+    bzero(client->p2pool_jobs, sizeof(p2pool_job_t) * MAX_JOBS_PER_CLIENT);
+    client->p2pool_jobs_pos = (uint16_t)(MAX_JOBS_PER_CLIENT - 1); // increment gives 0
+    for (uint16_t x = 0; x < MAX_JOBS_PER_CLIENT; ++x)
+    {
+        client->p2pool_jobs[x].reqs_pos = (uint16_t)(MAX_REQS_PER_JOB - 1); // increment gives 0
+    }
+}
+
+static void p2pool_add_job(client_t *client, const char* target_val, int height_val, const char* job_id_val)
+{
+    log_debug("client=%p, target_val='%s', height_val=%d, job_id_val='%s'", client, target_val, height_val, job_id_val);
+    ++client->p2pool_jobs_pos;
+    uint16_t x = client->p2pool_jobs_pos;
+    log_debug("x=%d", x);
+
+    bzero(&client->p2pool_jobs[x], sizeof(p2pool_job_t)); // wipes .reqs too
+    client->p2pool_jobs[x].reqs_pos = (uint16_t)(MAX_REQS_PER_JOB - 1); // increment gives 0
+
+    sscanf(target_val, "%"SCNu64, &client->p2pool_jobs[x].target);
+    client->p2pool_jobs[x].height = (uint64_t)height_val;
+    strncpy(client->p2pool_jobs[x].job_id, job_id_val, MAX_JOB_ID - 1);
+}
+
+static void p2pool_submit_job(client_t *client, const char* job_id_val, int req_id_val)
+{
+    log_debug("client=%p, job_id_val='%s', req_id_val=%d", client, job_id_val, req_id_val);
+    for (uint16_t x = 0; x < MAX_JOBS_PER_CLIENT; ++x)
+    {
+        if (strcmp(client->p2pool_jobs[x].job_id, job_id_val) == 0)
+        {
+            ++client->p2pool_jobs[x].reqs_pos;
+            uint16_t y = client->p2pool_jobs[x].reqs_pos;
+            log_debug("y=%d", y);
+
+            client->p2pool_jobs[x].reqs[y].req_id = req_id_val; // TODO: currently we store 1st share only per 1 job
+            client->p2pool_jobs[x].reqs[y].when_submitted = time(NULL);
+            client->p2pool_jobs[x].reqs[y].accepted = false;
+        }
+    }
+}
+
+static void p2pool_accept_job(client_t *client, int req_id_val)
+{
+    log_debug("client=%p, req_id_val=%d", client, req_id_val);
+    for (uint16_t x = 0; x < MAX_JOBS_PER_CLIENT; ++x)
+    {
+        for (uint16_t y = 0; y < MAX_REQS_PER_JOB; ++y)
+        {
+            if (client->p2pool_jobs[x].reqs[y].req_id == req_id_val)
+            {
+                log_debug("x=%d, y=%d", x, y);
+                client->p2pool_jobs[x].reqs[y].accepted = true;
+
+                share_t share = {0,0,{0},0};
+                share.height = client->p2pool_jobs[x].height;
+                share.difficulty = client->p2pool_jobs[x].target;
+                strncpy(share.address, client->address, sizeof(share.address)-1);
+                share.timestamp = client->p2pool_jobs[x].reqs[y].when_submitted;
+
+                if (!upstream_event)
+                    pool_stats.round_hashes += share.difficulty;
+                log_debug("Storing share with difficulty: %"PRIu64, share.difficulty);
+                int rc = store_share(share.height, &share);
+                if (rc != 0)
+                    log_warn("Failed to store share: %s", mdb_strerror(rc));
+                if (upstream_event)
+                    upstream_send_client_share(&share);
+            }
+        }
+    }
+}
+
 static void
 p2pool_on_read(struct bufferevent *bev, void *ctx)
 {
-    const char *too_long_p2pool = "Removing client. Message from P2POOL too long.";
+    const char *message_too_long_p2pool = "Removing client. Message from P2POOL too long.";
+    const char *line_too_long_p2pool = "Removing client. Line from P2POOL too long.";
+    const char *invalid_json_p2pool = "Removing client. Invalid JSON from P2POOL.";
 
     client_t *client = (client_t*)ctx;
-    log_debug("p2pool_on_read(client=%p)", client);
+    log_debug("client=%p", client);
     struct evbuffer *input = bufferevent_get_input(bev);
     struct evbuffer *output = bufferevent_get_output(client->bev);
     struct evbuffer_ptr tag;
@@ -2891,9 +3048,9 @@ p2pool_on_read(struct bufferevent *bev, void *ctx)
     if (len > MAX_LINE)
     {
         char body[ERROR_BODY_MAX] = {0};
-        stratum_get_error_body(body, client->json_id, too_long_p2pool);
+        stratum_get_error_body(body, client->json_id, message_too_long_p2pool);
         evbuffer_add(output, body, strlen(body));
-        log_warn("[%s:%d] %s", client->host, client->port, too_long_p2pool);
+        log_warn("[%s:%d] %s", client->host, client->port, message_too_long_p2pool);
         evbuffer_drain(input, len);
         client_clear(client->bev);
         goto unlock;
@@ -2907,14 +3064,116 @@ p2pool_on_read(struct bufferevent *bev, void *ctx)
             log_error("Bad message from p2pool");
         */
 
-        if (n > (MAX_LINE-2)) {
-            log_warn("p2pool_on_read(): n=%d, MAX_LINE=%d", n, MAX_LINE);
-            continue;
+        if (n > (MAX_LINE-2))
+        {
+            free(line);
+            char body[ERROR_BODY_MAX] = {0};
+            stratum_get_error_body(body, client->json_id, line_too_long_p2pool);
+            evbuffer_add(output, body, strlen(body));
+            log_warn("[%s:%d] %s", client->host, client->port, line_too_long_p2pool);
+            evbuffer_drain(input, len);
+            client_clear(bev);
+            goto unlock;
         }
 
-        log_debug("***p2pool_on_read evbuffer_readln %d ECHO TO MINER***", n);
+        json_object *message = json_tokener_parse(line);
+        if (!message)
+        {
+            free(line);
+            char body[ERROR_BODY_MAX] = {0};
+            stratum_get_error_body(body, client->json_id, invalid_json_p2pool);
+            evbuffer_add(output, body, strlen(body));
+            log_warn("[%s:%d] %s", client->host, client->port, invalid_json_p2pool);
+            evbuffer_drain(input, len);
+            client_clear(client->bev);
+            goto unlock;
+        }
+
+        log_debug("***evbuffer_readln %d ECHO TO MINER***", n);
         log_debug(line);
         log_debug("***");
+
+        //JSON_GET_OR_WARN(jsonrpc, message, json_type_string);
+        //const char *jsonrpc_name = json_object_get_string(jsonrpc);
+        //log_debug("%s", jsonrpc_name);
+
+        json_object *error = NULL;
+        if (json_object_object_get_ex(message, "error", &error))
+        {
+            log_debug("p2pool json object submit response (error object present)");
+            if (json_object_is_type(error, json_type_null))
+            {
+                log_debug("p2pool json object submit response (error object present type null)");
+                json_object *result = NULL;
+                if (json_object_object_get_ex(message, "result", &result))
+                {
+                    log_debug("p2pool json object submit response (error object present type null) result");
+                    if (json_object_is_type(result, json_type_object))
+                    {
+                        log_debug("p2pool json object submit response (error object present type null) result json_type_object");
+                        json_object *status = NULL;
+                        if (json_object_object_get_ex(result, "status", &status))
+                        {
+                            if (json_object_is_type(status, json_type_string))
+                            {
+                                log_debug("p2pool json object submit response (error object present type null) result status json_type_string");
+                                const char* status_val = json_object_get_string(status);
+                                log_debug("p2pool json object submit response (error object present type null) result status json_type_string status_val='%s'", status_val);
+
+                                JSON_GET_OR_WARN(id, message, json_type_int);
+                                int id_val = json_object_get_int(id);
+                                p2pool_accept_job(client, id_val);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            json_object *result = NULL;
+            if (json_object_object_get_ex(message, "result", &result))
+            {
+                log_debug("p2pool json object login responce result");
+                if (json_object_is_type(result, json_type_object))
+                {
+                    log_debug("p2pool json object login responce result type object");
+                    JSON_GET_OR_WARN(job, result, json_type_object);
+                    JSON_GET_OR_WARN(target, job, json_type_string);
+                    JSON_GET_OR_WARN(height, job, json_type_int);
+                    const char* target_val = json_object_get_string(target);
+                    int height_val = json_object_get_int(height);
+                    log_debug("p2pool json object login responce result type object sub-object job target_val='%s', height_val=%d", target_val, height_val);
+                    JSON_GET_OR_WARN(job_id, job, json_type_string);
+                    const char* job_id_val = json_object_get_string(job_id);
+                    log_debug("p2pool json object login responce result type object sub-object job job_id_val='%s'", job_id_val);
+                    p2pool_add_job(client, target_val, height_val, job_id_val);
+                }
+            }
+            else
+            {
+                JSON_GET_OR_WARN(method, message, json_type_string);
+                const char *method_name = json_object_get_string(method);
+                if (strcmp(method_name, "job") == 0)
+                {
+                    log_debug("p2pool json object job");
+                    JSON_GET_OR_WARN(params, message, json_type_object);
+                    if (json_object_is_type(params, json_type_object))
+                    {
+                        log_debug("p2pool json object job params type object");
+                        JSON_GET_OR_WARN(target, params, json_type_string);
+                        JSON_GET_OR_WARN(height, params, json_type_int);
+                        const char* target_val = json_object_get_string(target);
+                        int height_val = json_object_get_int(height);
+                        log_debug("p2pool json object job params type object target_val='%s', height_val=%d", target_val, height_val);
+                        JSON_GET_OR_WARN(job_id, params, json_type_string);
+                        const char* job_id_val = json_object_get_string(job_id);
+                        log_debug("p2pool json object job params type object job_id_val='%s'", job_id_val);
+                        p2pool_add_job(client, target_val, height_val, job_id_val);;
+                    }
+                }
+            }
+        }
 
         char linebuf[MAX_LINE];
         bzero(linebuf, MAX_LINE);
@@ -2930,18 +3189,20 @@ p2pool_on_read(struct bufferevent *bev, void *ctx)
     //evbuffer_drain(input, len); //only if error reading message
 
 unlock:
+    ;
+    /*
     pthread_mutex_lock(&mutex_clients);
     clients_reading--;
     pthread_cond_signal(&cond_clients);
     pthread_mutex_unlock(&mutex_clients);
+    */
 }
 
 // static const char* tmpjson_slashn = "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"login\",\"params\":{\"login\":\"48vtRRYH7NUb8c4o9wAxWD1daB4NcwooD9TW4p2oLRMC9g8YDJzUska3NQmb4kyzKZZZBepUaodAmcKtgrstPXwr9f2JCya\",\"pass\":\"x\",\"agent\":\"XMRig/6.18.0 (Linux x86_64) libuv/1.44.1 gcc/9.3.0\",\"algo\":[\"rx/0\",\"rx/wow\"]}}\n";
 
 static void p2pool_send_login(client_t *client)
 {
-    log_debug("p2pool_send_login(client=%p)", client);
-    log_debug("Sending message login p2pool");
+    log_debug("Sending message login to p2pool, client=%p", client);
     struct evbuffer *output = bufferevent_get_output(client->p2pool_event);
     evbuffer_add(output, client->miner_login_line, client->miner_login_line_len);
 }
@@ -2950,7 +3211,7 @@ static void
 p2pool_on_event(struct bufferevent *bev, short error, void *ctx)
 {
     client_t *client = (client_t*)ctx;
-    log_debug("p2pool_on_event(client=%p)", client);
+    log_debug("client=%p", client);
 
     if (error & BEV_EVENT_CONNECTED)
     {
@@ -2980,7 +3241,7 @@ p2pool_on_event(struct bufferevent *bev, short error, void *ctx)
 static void
 p2pool_connect(client_t *client)
 {
-    log_debug("p2pool_connect(client=%p)", client);
+    log_debug("client=%p", client);
 
     struct addrinfo *info = NULL;
     int rc = 0;
@@ -3140,6 +3401,7 @@ client_add(int fd, struct sockaddr_storage *ss,
     c->p2pool_event = NULL;
     c->miner_login_line = NULL;
     c->miner_login_line_len = 0;
+    p2pool_init_jobs(c);
 #endif
     if ((rc = getnameinfo((struct sockaddr*)ss, sizeof(*ss),
                     c->host, MAX_HOST, NULL, 0, NI_NUMERICHOST)))
@@ -3230,7 +3492,7 @@ static void
 miner_on_login(json_object *message, client_t *client)
 {
     usleep(100000);
-    log_debug("miner_on_login(client=%p): usleep(%d)", client, 100000);
+    log_debug("client=%p: usleep %d", client, 100000);
 
     JSON_GET_OR_ERROR(params, message, json_type_object, client);
     JSON_GET_OR_ERROR(login, params, json_type_string, client);
@@ -3460,7 +3722,7 @@ static void
 miner_on_submit(json_object *message, client_t *client)
 {
     usleep(100000);
-    log_debug("miner_on_submit(client=%p): usleep(%d)", client, 100000);
+    log_debug("client=%p: usleep %d", client, 100000);
 
     struct evbuffer *output = bufferevent_get_output(client->bev);
 
@@ -3774,12 +4036,89 @@ post_hash:
     }
 }
 
+#ifdef P2POOL
+static void miner_on_login_to_p2pool(const char *line, size_t n, client_t *client)
+{
+    log_debug("line, n, client=%p is called, implemented - ECHO TO P2POOL", client);
+
+    log_debug("***evbuffer_readln %d***", n);
+    log_debug(line);
+    log_debug("***");
+
+    if (client->miner_login_line)
+    {
+        free(client->miner_login_line);
+        client->miner_login_line = NULL;
+        client->miner_login_line_len = 0;
+    }
+
+    client->miner_login_line = (char*)malloc(MAX_LINE);
+    bzero(client->miner_login_line, MAX_LINE);
+    memcpy(client->miner_login_line, line, n);
+    client->miner_login_line[n] = '\n';
+    client->miner_login_line_len = n+1;
+
+    p2pool_connect(client);
+}
+
+static void miner_on_submit_to_p2pool(const char *line, size_t n, json_object *message, client_t *client)
+{
+    log_debug("line, n, message, client=%p is called, implemented - ECHO TO P2POOL", client);
+
+    log_debug("***evbuffer_readln %d***", n);
+    log_debug(line);
+    log_debug("***");
+
+    JSON_GET_OR_ERROR(params, message, json_type_object, client);
+    JSON_GET_OR_ERROR(nonce, params, json_type_string, client);
+    JSON_GET_OR_ERROR(result, params, json_type_string, client);
+    JSON_GET_OR_ERROR(job_id, params, json_type_string, client);
+
+    char *endptr = NULL;
+    const char *nptr = json_object_get_string(nonce);
+    errno = 0;
+    unsigned long int uli = strtoul(nptr, &endptr, 16);
+    if (errno != 0 || nptr == endptr)
+    {
+        send_validation_error(client, "nonce not an unsigned long int");
+        return;
+    }
+    const uint32_t result_nonce = ntohl(uli);
+
+    const char *result_hex = json_object_get_string(result);
+    if (strlen(result_hex) != 64)
+    {
+        send_validation_error(client, "result invalid length");
+        return;
+    }
+    if (is_hex_string(result_hex) != 0)
+    {
+        send_validation_error(client, "result not hex string");
+        return;
+    }
+
+    const char *job_id_val = json_object_get_string(job_id);
+    int req_id_val = client->json_id;
+    log_debug("job_id_val='%s', req_id_val=%d", job_id_val, req_id_val);
+    p2pool_submit_job(client, job_id_val, req_id_val);
+
+    char linebuf[MAX_LINE];
+    bzero(linebuf, MAX_LINE);
+    memcpy(linebuf, line, n);
+    linebuf[n] = '\n';
+
+    struct evbuffer *output = bufferevent_get_output(client->p2pool_event);
+    evbuffer_add(output, linebuf, n+1);
+}
+#endif
+
 static void
 miner_on_read(struct bufferevent *bev, void *ctx)
 {
     const char *unknown_method = "Removing client. Unknown method called.";
     const char *too_bad = "Removing client. Too many bad shares.";
     const char *too_long = "Removing client. Message too long.";
+    const char *line_too_long = "Removing client. Line too long.";
     const char *invalid_json = "Removing client. Invalid JSON.";
     struct evbuffer *input, *output;
     char *line = NULL;
@@ -3811,6 +4150,18 @@ miner_on_read(struct bufferevent *bev, void *ctx)
 
     while ((line = evbuffer_readln(input, &n, EVBUFFER_EOL_LF)))
     {
+        if (n > (MAX_LINE-2))
+        {
+            free(line);
+            char body[ERROR_BODY_MAX] = {0};
+            stratum_get_error_body(body, client->json_id, line_too_long);
+            evbuffer_add(output, body, strlen(body));
+            log_warn("[%s:%d] %s", client->host, client->port, line_too_long);
+            evbuffer_drain(input, len);
+            client_clear(bev);
+            goto unlock;
+        }
+
         json_object *message = json_tokener_parse(line);
         if (!message)
         {
@@ -3837,25 +4188,7 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         else if (strcmp(method_name, "login") == 0)
         {
 #ifdef P2POOL
-            if (n > (MAX_LINE-2)) {
-                log_warn("miner_on_read(login): n=%d, MAX_LINE=%d", n, MAX_LINE);
-                continue;
-            }
-
-            if (client->miner_login_line)
-            {
-                free(client->miner_login_line);
-                client->miner_login_line = NULL;
-                client->miner_login_line_len = 0;
-            }
-
-            client->miner_login_line = (char*)malloc(MAX_LINE);
-            bzero(client->miner_login_line, MAX_LINE);
-            memcpy(client->miner_login_line, line, n);
-            client->miner_login_line[n] = '\n';
-            client->miner_login_line_len = n+1;
-
-            p2pool_connect(client);
+            miner_on_login_to_p2pool(line, n, client);
 #else
             miner_on_login(message, client);
 #endif
@@ -3863,8 +4196,15 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         else if (strcmp(method_name, "block_template") == 0)
         {
 #ifdef P2POOL
-            log_fatal("p2pool's miner_on_block_template() not implemented yet");
-            abort();
+            const char *miner_on_block_template_not_implemented_yet = "p2pool's miner_on_block_template() not implemented yet.";
+            free(line);
+            char body[ERROR_BODY_MAX] = {0};
+            stratum_get_error_body(body, client->json_id, miner_on_block_template_not_implemented_yet);
+            evbuffer_add(output, body, strlen(body));
+            log_warn("[%s:%d] %s", client->host, client->port, miner_on_block_template_not_implemented_yet);
+            evbuffer_drain(input, len);
+            client_clear(bev);
+            goto unlock;
 #else
             miner_on_block_template(message, client);
 #endif
@@ -3872,24 +4212,7 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         else if (strcmp(method_name, "submit") == 0)
         {
 #ifdef P2POOL
-            log_warn("miner_on_read(submit) is called, but not yet implemented - ECHO TO P2POOL");
-
-            if (n > (MAX_LINE-2)) {
-                log_warn("miner_on_read(submit): n=%d, MAX_LINE=%d", n, MAX_LINE);
-                continue;
-            }
-
-            log_debug("***miner_on_read(submit) evbuffer_readln %d***", n);
-            log_debug(line);
-            log_debug("***");
-
-            char linebuf[MAX_LINE];
-            bzero(linebuf, MAX_LINE);
-            memcpy(linebuf, line, n);
-            linebuf[n] = '\n';
-
-            struct evbuffer *output = bufferevent_get_output(client->p2pool_event);
-            evbuffer_add(output, linebuf, n+1);
+            miner_on_submit_to_p2pool(line, n, message, client);
 #else
             miner_on_submit(message, client);
 #endif
@@ -3897,8 +4220,15 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         else if (strcmp(method_name, "getjob") == 0)
         {
 #ifdef P2POOL
-            log_fatal("p2pool's miner_send_job() not implemented yet");
-            abort();
+            const char *miner_send_job_not_implemented_yet = "p2pool's miner_send_job() not implemented yet.";
+            free(line);
+            char body[ERROR_BODY_MAX] = {0};
+            stratum_get_error_body(body, client->json_id, miner_send_job_not_implemented_yet);
+            evbuffer_add(output, body, strlen(body));
+            log_warn("[%s:%d] %s", client->host, client->port, miner_send_job_not_implemented_yet);
+            evbuffer_drain(input, len);
+            client_clear(bev);
+            goto unlock;
 #else
             miner_send_job(client, false);
 #endif
@@ -3906,14 +4236,9 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         else if (strcmp(method_name, "keepalived") == 0)
         {
 #ifdef P2POOL
-            log_warn("miner_on_read(keepalived) is called, AND implemented - ECHO TO P2POOL");
+            log_debug("(keepalived) is called, AND implemented - ECHO TO P2POOL");
 
-            if (n > (MAX_LINE-2)) {
-                log_warn("miner_on_read(keepalived): n=%d, MAX_LINE=%d", n, MAX_LINE);
-                continue;
-            }
-
-            log_debug("***miner_on_read(keepalived) evbuffer_readln %d***", n);
+            log_debug("***(keepalived) evbuffer_readln %d***", n);
             log_debug(line);
             log_debug("***");
 
@@ -4914,6 +5239,9 @@ int main(int argc, char **argv)
     }
 
     print_config();
+#ifdef P2POOL
+    log_info("P2POOL support compiled");
+#endif
     log_info("Starting pool on: %s:%d", config.pool_listen, config.pool_port);
 
     if (config.forked)
@@ -4937,7 +5265,7 @@ int main(int argc, char **argv)
         nproc = config.processes < 0 ? nproc : config.processes;
         if (nproc > 3)
         {
-            log_warn("Maximum number of processes supported is 4, reducing requested nproc from %d to 3", nproc);
+            log_warn("Maximum number of processes supported is 3, reducing requested nproc from %d to 3", nproc);
             nproc = 3;
         }
         log_info("Launching processes: %d", nproc);
@@ -5017,10 +5345,6 @@ int main(int argc, char **argv)
     uic.payment_threshold = config.payment_threshold;
     if (config.webui_port)
         start_web_ui(&uic);
-
-#ifdef P2POOL
-    log_info("P2POOL support compiled");
-#endif
 
     run();
 
