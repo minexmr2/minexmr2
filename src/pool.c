@@ -233,8 +233,8 @@ typedef struct job_t
 typedef struct p2pool_submission_t
 {
     int req_id;
-    bool accepted;
     time_t when_submitted; // when submitted
+    bool accepted;
 } p2pool_submission_t;
 
 typedef struct p2pool_job_t
@@ -243,7 +243,7 @@ typedef struct p2pool_job_t
     uint64_t height;
     uint64_t target;
     //char address[ADDRESS_MAX]; // This is a client's field
-    time_t when_received; // when received
+    //time_t when_received; // when received, this is not needed because of cycle buffer used
     p2pool_submission_t reqs[MAX_REQS_PER_JOB];
     uint16_t reqs_pos: MAX_REQS_PER_JOB_LOG;
 } p2pool_job_t;
@@ -686,7 +686,11 @@ store_share(uint64_t height, share_t *share)
 
     MDB_val key = { sizeof(height), (void*)&height };
     MDB_val val = { sizeof(share_t), (void*)share };
+#ifdef P2POOL
+    rc = mdb_cursor_put(cursor, &key, &val, 0);
+#else
     rc = mdb_cursor_put(cursor, &key, &val, MDB_APPENDDUP);
+#endif
     if (rc != 0)
     {
         err = mdb_strerror(rc);
@@ -878,6 +882,8 @@ balance_add(const char *address, uint64_t amount, MDB_txn *parent)
         {
             err = mdb_strerror(rc);
             log_error("%s", err);
+            mdb_txn_abort(txn);
+            return rc;
         }
     }
     else if (rc == 0)
@@ -891,6 +897,8 @@ balance_add(const char *address, uint64_t amount, MDB_txn *parent)
         {
             err = mdb_strerror(rc);
             log_error("%s", err);
+            mdb_txn_abort(txn);
+            return rc;
         }
     }
     else
@@ -971,6 +979,9 @@ payout_block(block_t *block, MDB_txn *parent)
             {
                 err = mdb_strerror(rc);
                 log_error("Error adding pool fee balance: %s", err);
+                mdb_cursor_close(cursor);
+                mdb_txn_abort(txn);
+                return rc;
             }
         }
         if (amount == 0)
@@ -1157,7 +1168,7 @@ template_recycle(void *item)
         bt->blocktemplate_blob = NULL;
     }
 }
-
+#ifndef P2POOL
 static uint64_t
 client_target(client_t *client, job_t *job)
 {
@@ -1370,7 +1381,7 @@ stratum_get_job_body(char *body, const client_t *client, bool response)
                 seed_hash, next_seed_hash);
     }
 }
-
+#endif
 static inline void
 stratum_get_error_body(char *body, int json_id, const char *error)
 {
@@ -1406,7 +1417,7 @@ client_clear_jobs(client_t *client)
     bstack_free(client->active_jobs);
     client->active_jobs = NULL;
 }
-
+#ifndef P2POOL
 static job_t *
 client_find_job(client_t *client, const char *job_id)
 {
@@ -1425,13 +1436,8 @@ client_find_job(client_t *client, const char *job_id)
 static void
 miner_send_job(client_t *client, bool response)
 {
-#ifdef P2POOL
-    log_fatal("should not be called");
-    return;
-#endif
-
-    usleep(100000);
-    log_debug("client=%p: usleep %d", client, 100000);
+    //usleep(100000);
+    //log_debug("client=%p: usleep %d", client, 100000);
 
     job_t *job = bstack_push(client->active_jobs, NULL);
     block_template_t *bt = bstack_top(bst);
@@ -1531,7 +1537,7 @@ miner_send_job(client_t *client, bool response)
     free(block);
     free(hashing_blob);
 }
-
+#endif
 static void
 accounts_moved(const void *items, size_t count)
 {
@@ -1561,7 +1567,7 @@ clients_moved(const void *items, size_t count)
     }
     pthread_rwlock_unlock(&rwlock_cfd);
 }
-
+#ifndef P2POOL
 static void
 clients_send_job(void)
 {
@@ -1573,7 +1579,7 @@ clients_send_job(void)
         miner_send_job(c, false);
     }
 }
-
+#endif
 static void
 clients_init(void)
 {
@@ -1919,7 +1925,9 @@ rpc_on_block_template(const char* data, rpc_callback_t *callback)
     pool_stats.last_template_fetched = time(NULL);
     block_template_t *top = (block_template_t*) bstack_push(bst, NULL);
     response_to_block_template(result, top);
+#ifndef P2POOL
     clients_send_job();
+#endif
     json_object_put(root);
 }
 
@@ -2064,6 +2072,363 @@ rpc_on_view_key(const char* data, rpc_callback_t *callback)
     json_object_put(root);
 }
 
+#ifdef P2POOL
+#define P2POOL_REWARD_NOTHING_TODO -343223512
+
+static int
+p2pool_reward_balances_by_shares(int64_t total_reward, uint64_t height_prev, uint64_t height, MDB_txn *parent)
+{
+    /*
+      PPLNS
+    */
+    log_info("Payout on p2pool MDB_RDONLY");
+    if (total_reward <= (config.payment_threshold + config.payment_threshold * config.pool_fee + 0.001))
+    {
+        log_info("nothing to update yet, total_reward=%"PRIu64"", total_reward);
+        return P2POOL_REWARD_NOTHING_TODO;
+    }
+    if (height_prev >= height)
+    {
+        log_info("nothing to update yet, height_prev=%"PRIu64", height=%"PRIu64"", height_prev, height);
+        return P2POOL_REWARD_NOTHING_TODO;
+    }
+    if ((height_prev == 0) || (height_prev >= 1000000000))
+    {
+        log_error("nothing to update, error in height_prev=%"PRIu64"", height_prev);
+        return -1;
+    }
+
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_cursor *cursor = NULL;
+    uint64_t total_difficulty = 0;
+
+    if ((rc = mdb_txn_begin(env, NULL, MDB_RDONLY, &txn)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    if ((rc = mdb_cursor_open(txn, db_shares, &cursor)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    for (uint64_t h = (height - 10); h > (height_prev - 10); --h) // roughly last day
+    {
+        //log_debug("h=%"PRIu64"", h);
+
+        MDB_val key = { sizeof(h), (void*)&h };
+        MDB_val val;
+
+        if ((rc = mdb_cursor_get(cursor, &key, &val, MDB_SET)) == 0)
+        {
+
+            share_t *share = (share_t*)val.mv_data;
+            struct tm *lt = localtime(&share->timestamp);
+            char buf[32];
+            buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", lt)] = '\0';
+            uint64_t* pstored_height = (uint64_t*)key.mv_data;
+            log_debug("MDB_SET: stored_height=%"PRIu64", share->height=%"PRIu64", share->difficulty=%"PRIu64", share->address=%s, share->timestamp=%s", *pstored_height, share->height, share->difficulty, share->address, buf);
+
+            total_difficulty += share->difficulty;
+
+            account_t *account = NULL;
+            pthread_rwlock_rdlock(&rwlock_acc);
+            HASH_FIND_STR(accounts, share->address, account);
+            pthread_rwlock_unlock(&rwlock_acc);
+            if (!account)
+            {
+                log_info("new address=%s", share->address);
+                account = gbag_get(bag_accounts);
+                strncpy(account->address, share->address, sizeof(account->address)-1);
+                account->hashes = share->difficulty;
+                pthread_rwlock_wrlock(&rwlock_acc);
+                const char* address = share->address;
+                HASH_ADD_STR(accounts, address, account);
+                pthread_rwlock_unlock(&rwlock_acc);
+                log_debug("new account->address=%s, account->hashes=%"PRIu64"", account->address, account->hashes);
+            }
+            else
+            {
+                account->hashes += share->difficulty;
+                log_debug("sum account->address=%s, account->hashes=%"PRIu64"", account->address, account->hashes);
+            }
+
+            while ((rc = mdb_cursor_get(cursor, &key, &val, MDB_NEXT_DUP)) == 0)
+            {
+                share_t *share = (share_t*)val.mv_data;
+                struct tm *lt = localtime(&share->timestamp);
+                char buf[32];
+                buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", lt)] = '\0';
+                pstored_height = (uint64_t*)key.mv_data;
+                log_debug("MDB_NEXT_DUP: stored_height=%"PRIu64", share->height=%"PRIu64", share->difficulty=%"PRIu64", share->address=%s, share->timestamp=%s", *pstored_height, share->height, share->difficulty, share->address, buf);
+
+                total_difficulty += share->difficulty;
+
+                account_t *account = NULL;
+                pthread_rwlock_rdlock(&rwlock_acc);
+                HASH_FIND_STR(accounts, share->address, account);
+                pthread_rwlock_unlock(&rwlock_acc);
+                if (!account)
+                {
+                    log_info("new address=%s", share->address);
+                    account = gbag_get(bag_accounts);
+                    strncpy(account->address, share->address, sizeof(account->address)-1);
+                    account->hashes = share->difficulty;
+                    pthread_rwlock_wrlock(&rwlock_acc);
+                    const char* address = share->address;
+                    HASH_ADD_STR(accounts, address, account);
+                    pthread_rwlock_unlock(&rwlock_acc);
+                    log_debug("new account->address=%s, account->hashes=%"PRIu64"", account->address, account->hashes);
+                }
+                else
+                {
+                    account->hashes += share->difficulty;
+                    log_debug("sum account->address=%s, account->hashes=%"PRIu64"", account->address, account->hashes);
+                }
+            }
+            if (rc != MDB_NOTFOUND)
+            {
+                err = mdb_strerror(rc);
+                log_error("%s", err);
+                mdb_cursor_close(cursor);
+                mdb_txn_abort(txn);
+                return rc;
+            }
+        }
+        if (rc != MDB_NOTFOUND)
+        {
+            err = mdb_strerror(rc);
+            log_error("%s", err);
+            mdb_cursor_close(cursor);
+            mdb_txn_abort(txn);
+            return rc;
+        }
+    }
+
+    rc = mdb_txn_commit(txn);
+    if (rc != 0)
+        return rc;
+
+    log_debug("total_difficulty=%"PRIu64"", total_difficulty);
+
+    int64_t total_reward_minus_fee = total_reward - total_reward * config.pool_fee - 0.001;
+    log_debug("total_reward_minus_fee=%"PRIu64"", total_reward_minus_fee);
+
+    account_t *acc = (account_t*)gbag_first(bag_accounts);
+    while ((acc = gbag_next(bag_accounts, 0)) != NULL)
+    {
+        int64_t cur_reward = (int64_t)(total_reward_minus_fee * ((double)acc->hashes / total_difficulty));
+        log_debug("acc->address=%s, cur_reward=%"PRIu64"", acc->address, cur_reward);
+        rc = balance_add(acc->address, (uint64_t)cur_reward, parent);
+        if (rc != 0)
+            return rc;
+    }
+
+    return 0;
+}
+
+static uint64_t p2pool_height_prev = 2701300;
+static int64_t p2pool_balance_prev = 0;
+
+static int p2pool_load_last_height_balance(void)
+{
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_val k, v;
+    if ((rc = mdb_txn_begin(env, NULL, 0, &txn)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    k.mv_data = "p2pool_height_prev";
+    k.mv_size = strlen(k.mv_data);
+    if (!mdb_get(txn, db_properties, &k, &v))
+        memcpy(&p2pool_height_prev, v.mv_data, v.mv_size);
+    k.mv_data = "p2pool_balance_prev";
+    k.mv_size = strlen(k.mv_data);
+    if (!mdb_get(txn, db_properties, &k, &v))
+        memcpy(&p2pool_balance_prev, v.mv_data, v.mv_size);
+    if ((rc = mdb_txn_commit(txn)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    return rc;
+}
+
+static int
+p2pool_store_last_height(MDB_txn *parent)
+{
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_val k, v;
+    if ((rc = mdb_txn_begin(env, parent, 0, &txn)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    k.mv_data = "p2pool_height_prev";
+    k.mv_size = strlen(k.mv_data);
+    v.mv_data = &p2pool_height_prev;
+    v.mv_size = sizeof(p2pool_height_prev);
+    if ((rc = mdb_put(txn, db_properties, &k, &v, 0)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+    if ((rc = mdb_txn_commit(txn)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    return rc;
+}
+
+static int
+p2pool_store_last_balance(void)
+{
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_val k, v;
+    if ((rc = mdb_txn_begin(env, NULL, 0, &txn)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    k.mv_data = "p2pool_balance_prev";
+    k.mv_size = strlen(k.mv_data);
+    v.mv_data = &p2pool_balance_prev;
+    v.mv_size = sizeof(p2pool_balance_prev);
+    if ((rc = mdb_put(txn, db_properties, &k, &v, 0)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+    if ((rc = mdb_txn_commit(txn)))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    return rc;
+}
+
+static int
+send_payments(void);
+
+static void
+p2pool_rpc_on_get_balance(const char* data, rpc_callback_t *callback)
+{
+    json_object *root = json_tokener_parse(data);
+    JSON_GET_OR_WARN(result, root, json_type_object);
+    JSON_GET_OR_WARN(balance, result, json_type_int);
+    JSON_GET_OR_WARN(unlocked_balance, result, json_type_int);
+    json_object *error = NULL;
+    json_object_object_get_ex(root, "error", &error);
+    if (error)
+    {
+        JSON_GET_OR_WARN(code, error, json_type_object);
+        JSON_GET_OR_WARN(message, error, json_type_string);
+        int ec = json_object_get_int(code);
+        const char *em = json_object_get_string(message);
+        log_error("Error (%d) getting key: %s", ec, em);
+        json_object_put(root);
+        return;
+    }
+    int64_t balance_val = json_object_get_int64(balance);
+    int64_t unlocked_balance_val = json_object_get_int64(unlocked_balance);
+    double balance_xmr = (double)(balance_val) / 1e12;
+    log_debug("balance_val=%"PRIu64", balance_xmr=%6.6f, unlocked_balance_val=%"PRIu64"", balance_val, balance_xmr, unlocked_balance_val);
+    block_t *top = bstack_top(bsh);
+    if (top == NULL)
+    {
+        log_error("No top block found");
+        return;
+    }
+    if (p2pool_load_last_height_balance() != 0)
+    {
+        log_error("Error loading p2pool last height/balance needed to make payments.");
+        return;
+    }
+    log_info("OLD p2pool_height_prev=%"PRIu64", p2pool_balance_prev=%"PRIu64"", p2pool_height_prev, p2pool_balance_prev);
+    int64_t to_be_paid = unlocked_balance_val - p2pool_balance_prev;
+    MDB_txn *parent = NULL;
+    int rc = 0;
+    const char *err = NULL;
+    if ((rc = mdb_txn_begin(env, NULL, 0, &parent)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return;
+    }
+    int reward_err = p2pool_reward_balances_by_shares(to_be_paid, p2pool_height_prev, top->height, parent);
+    if (reward_err == 0)
+    {
+        p2pool_height_prev = top->height;
+        if (p2pool_store_last_height(parent) != 0)
+        {
+            log_error("Error storing p2pool last height needed to make payments.");
+            mdb_txn_abort(parent);
+            return;
+        }
+        rc = mdb_txn_commit(parent);
+        if (rc != 0)
+        {
+            err = mdb_strerror(rc);
+            log_error("%s", err);
+            return;
+        }
+        log_info("Now sending payments if above payment threshold...");
+        p2pool_balance_prev = unlocked_balance_val; // needed by send_payments()'s callback
+        send_payments();
+    }
+    else
+    {
+        if (reward_err == P2POOL_REWARD_NOTHING_TODO)
+        {
+            rc = mdb_txn_commit(parent);
+            if (rc != 0)
+            {
+                err = mdb_strerror(rc);
+                log_error("%s", err);
+                return;
+            }
+        }
+        else
+        {
+            log_error("error in p2pool_reward_balances_by_shares() - don't send payments");
+            mdb_txn_abort(parent);
+        }
+    }
+}
+
+static void p2pool_process_wallet_balance(void)
+{
+    log_info("Rewarding miners...");
+    const char* body = "{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"get_balance\",\"params\":{\"account_index\":0}}";
+    rpc_callback_t *cb = rpc_callback_new(p2pool_rpc_on_get_balance, 0, 0);
+    rpc_wallet_request(pool_base, body, cb);
+}
+#endif
+
 static void
 rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
 {
@@ -2140,8 +2505,11 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
     }
 
     json_object_put(root);
+#ifdef P2POOL
+    p2pool_process_wallet_balance();
+#endif
 }
-
+#ifndef P2POOL
 static void
 rpc_on_block_submitted(const char* data, rpc_callback_t *callback)
 {
@@ -2182,7 +2550,7 @@ rpc_on_block_submitted(const char* data, rpc_callback_t *callback)
         log_warn("Failed to store block: %s", mdb_strerror(rc));
     json_object_put(root);
 }
-
+#endif
 static void
 rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
 {
@@ -2245,14 +2613,19 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         if (current_amount >= p->amount)
         {
             current_amount -= p->amount;
+#ifdef P2POOL
+            p2pool_balance_prev -= p->amount;
+#endif
         }
         else
         {
             log_error("Payment was more than balance: %"PRIu64" > %"PRIu64,
                       p->amount, current_amount);
             current_amount = 0;
+#ifdef P2POOL
+            p2pool_balance_prev = (int64_t)(1000000000*1e12);
+#endif
         }
-
         if (error)
         {
             log_warn("Error seen on transfer for %s with amount %"PRIu64,
@@ -2273,7 +2646,14 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         mdb_txn_abort(txn);
         goto cleanup;
     }
-
+#ifdef P2POOL
+    log_info("NEW p2pool_height_prev=%"PRIu64", p2pool_balance_prev=%"PRIu64"", p2pool_height_prev, p2pool_balance_prev);
+    if (p2pool_store_last_balance() != 0)
+    {
+        log_error("Error storing p2pool last balance needed to make payments.");
+        goto cleanup;
+    }
+#endif
     /* Now store payment info */
     if ((rc = mdb_txn_begin(env, NULL, 0, &txn)) != 0)
     {
@@ -2378,7 +2758,7 @@ send_payments(void)
         char *end = body + body_size;
         start = stecpy(start, "{\"id\":\"0\",\"jsonrpc\":\"2.0\",\"method\":"
                 "\"transfer_split\",\"params\":{"
-                "\"ring_size\":11,\"destinations\":[", end);
+                "\"ring_size\":16,\"destinations\":[", end); // After Aug 13 2022 ring_size should be 16 to avoid warning
         payment_t *p = (payment_t*) gbag_first(bag_pay);
         while ((p = gbag_next(bag_pay, 0)))
         {
@@ -2392,13 +2772,22 @@ send_payments(void)
             else
                 start = stecpy(start, "]}}", end);
         }
-        log_trace(body);
+        log_debug(body);
         rpc_callback_t *cb = rpc_callback_new(
                 rpc_on_wallet_transferred, bag_pay, rpc_bag_free);
+#ifndef DEBUG
+        log_info("rpc_wallet_request");
         rpc_wallet_request(pool_base, body, cb);
+#else
+        log_info("DEBUG rpc_on_wallet_transferred (not making actual payments)");
+        rpc_on_wallet_transferred("{\"result\":{\"status\":\"OK\"}, \"error\": null}", cb);
+#endif
     }
     else
+    {
+        log_info("No payments to send");
         gbag_free(bag_pay);
+    }
 
     return 0;
 }
@@ -2406,21 +2795,21 @@ send_payments(void)
 static void
 fetch_view_key(void)
 {
-    log_info("fetch_view_key()...");
+    log_info("...");
     if (*config.pool_view_key)
     {
         hex_to_bin(config.pool_view_key, 64, sec_view, 32);
-        log_info("fetch_view_key(config.pool_view_key) using pool view-key: %.4s<hidden>", config.pool_view_key);
+        log_info("using config view-key: %.4s<hidden>", config.pool_view_key);
         return;
     }
     if (*sec_view)
     {
-        log_info("fetch_view_key(sec_view)");
+        log_info("sec_view (cached from config)");
         return;
     }
     if (!(*config.upstream_host) && (*config.trusted_listen))
     {
-        log_info("fetch_view_key(monero-wallet-rpc)");
+        log_info("monero-wallet-rpc (request view-key)");
         char body[RPC_BODY_MAX] = {0};
         rpc_get_request_body(body, "query_key", "ss", "key_type", "view_key");
         rpc_callback_t *cb = rpc_callback_new(rpc_on_view_key, 0, 0);
@@ -2735,7 +3124,7 @@ trusted_on_client_share(client_t *client)
     pthread_rwlock_unlock(&rwlock_acc);
     if (!account)
     {
-        log_info("trusted_on_client_share(): new address=%s", s.address);
+        log_info("new address=%s", s.address);
         account = gbag_get(bag_accounts);
         strncpy(account->address, s.address, sizeof(account->address)-1);
         account->hr_stats.last_calc = 0;
@@ -2986,7 +3375,7 @@ static void p2pool_submit_job(client_t *client, const char* job_id_val, int req_
         {
             ++client->p2pool_jobs[x].reqs_pos;
             uint16_t y = client->p2pool_jobs[x].reqs_pos;
-            log_debug("y=%d", y);
+            log_debug("x=%d, y=%d", x, y);
 
             client->p2pool_jobs[x].reqs[y].req_id = req_id_val; // TODO: currently we store 1st share only per 1 job
             client->p2pool_jobs[x].reqs[y].when_submitted = time(NULL);
@@ -3037,8 +3426,8 @@ p2pool_on_read(struct bufferevent *bev, void *ctx)
     log_debug("client=%p", client);
     struct evbuffer *input = bufferevent_get_input(bev);
     struct evbuffer *output = bufferevent_get_output(client->bev);
-    struct evbuffer_ptr tag;
-    unsigned char tnt[9] = {0};
+    //struct evbuffer_ptr tag;
+    //unsigned char tnt[9] = {0};
 
     char* line = NULL;
     size_t n = 0;
@@ -3183,6 +3572,7 @@ p2pool_on_read(struct bufferevent *bev, void *ctx)
         struct evbuffer *output = bufferevent_get_output(client->bev);
         evbuffer_add(output, linebuf, n+1);
 
+        json_object_put(message);
         free(line);
     }
 
@@ -3315,9 +3705,9 @@ timer_on_10m(int fd, short kind, void *ctx)
 
     if (database_resize())
         log_warn("DB resize needed, will retry later");
-
+#ifndef P2POOL
     send_payments();
-
+#endif
     /* culling old shares */
     if (config.cull_shares < 1)
         goto done;
@@ -3480,6 +3870,7 @@ clear:
         client->miner_login_line = NULL;
         client->miner_login_line_len = 0;
     }
+    // TODO: currently we don't clear p2pool jobs here - not needed
 #endif
     pthread_rwlock_wrlock(&rwlock_cfd);
     HASH_DEL(clients_by_fd, client);
@@ -3487,12 +3878,12 @@ clear:
     gbag_put(bag_clients, client);
     bufferevent_free(bev);
 }
-
+#ifndef P2POOL
 static void
-miner_on_login(json_object *message, client_t *client)
+miner_on_login(json_object *message, client_t *client, bool *pvalid)
 {
-    usleep(100000);
-    log_debug("client=%p: usleep %d", client, 100000);
+    //usleep(100000);
+    //log_debug("client=%p: usleep %d", client, 100000);
 
     JSON_GET_OR_ERROR(params, message, json_type_object, client);
     JSON_GET_OR_ERROR(login, params, json_type_string, client);
@@ -3514,6 +3905,7 @@ miner_on_login(json_object *message, client_t *client)
                 {
                     send_validation_error(client,
                             "pool disabled self-select");
+                    *pvalid = false;
                     return;
                 }
                 client->mode = MODE_SELF_SELECT;
@@ -3533,26 +3925,29 @@ miner_on_login(json_object *message, client_t *client)
             log_trace("Miner set rigid: %s", client->rig_id);
         }
     }
-
     const char *address = json_object_get_string(login);
+#ifndef DEBUG
     uint8_t nt = 0;
     uint64_t pf = 0;
     if (parse_address(address, &pf, &nt, NULL))
     {
         send_validation_error(client, "Invalid address");
+        *pvalid = false;
         return;
     }
     if (nt != nettype)
     {
         send_validation_error(client, "Invalid address network type");
+        *pvalid = false;
         return;
     }
     if (is_integrated(pf))
     {
         send_validation_error(client, "Invalid address type");
+        *pvalid = false;
         return;
     }
-
+#endif
     const char *worker_id = json_object_get_string(pass);
     char *rd = strstr(worker_id, "d=");
     if (rd && rd[2])
@@ -3585,7 +3980,8 @@ miner_on_login(json_object *message, client_t *client)
             && client->mode == MODE_SELF_SELECT)
     {
         send_validation_error(client,
-                "mode self-select not supported by xmr-node-proxy");
+                "mode self-select not supported by xmr-node-proxy or NiceHash");
+        *pvalid = false;
         return;
     }
 
@@ -3721,8 +4117,8 @@ miner_on_block_template(json_object *message, client_t *client)
 static void
 miner_on_submit(json_object *message, client_t *client)
 {
-    usleep(100000);
-    log_debug("client=%p: usleep %d", client, 100000);
+    //usleep(100000);
+    //log_debug("client=%p: usleep %d", client, 100000);
 
     struct evbuffer *output = bufferevent_get_output(client->bev);
 
@@ -4035,15 +4431,149 @@ post_hash:
         miner_send_job(client, false);
     }
 }
-
+#endif
 #ifdef P2POOL
-static void miner_on_login_to_p2pool(const char *line, size_t n, client_t *client)
+static void p2pool_miner_on_login(const char *line, size_t n, json_object *message, client_t *client, bool *pvalid)
 {
     log_debug("line, n, client=%p is called, implemented - ECHO TO P2POOL", client);
 
     log_debug("***evbuffer_readln %d***", n);
     log_debug(line);
     log_debug("***");
+
+    //usleep(100000);
+    //log_debug("client=%p: usleep %d", client, 100000);
+
+    JSON_GET_OR_ERROR(params, message, json_type_object, client);
+    JSON_GET_OR_ERROR(login, params, json_type_string, client);
+    JSON_GET_OR_ERROR(pass, params, json_type_string, client);
+    client->mode = MODE_NORMAL;
+    json_object *mode = NULL;
+    json_object *rig_id = NULL;
+
+    if (json_object_object_get_ex(params, "mode", &mode))
+    {
+        if (!json_object_is_type(mode, json_type_string))
+            log_warn("mode not a json_type_string");
+        else
+        {
+            const char *modestr = json_object_get_string(mode);
+            if (strcmp(modestr, "self-select") == 0)
+            {
+                if (config.disable_self_select)
+                {
+                    send_validation_error(client,
+                            "pool disabled self-select");
+                    *pvalid = false;
+                    return;
+                }
+                client->mode = MODE_SELF_SELECT;
+                log_trace("Miner login for mode: self-select");
+            }
+        }
+    }
+
+    if (json_object_object_get_ex(params, "rigid", &rig_id))
+    {
+        if (!json_object_is_type(rig_id, json_type_string))
+            log_warn("rigid not a json_type_string");
+        else
+        {
+            const char *rigstr = json_object_get_string(rig_id);
+            strncpy(client->rig_id, rigstr, MAX_RIG_ID-1);
+            log_trace("Miner set rigid: %s", client->rig_id);
+        }
+    }
+    const char *address = json_object_get_string(login);
+#ifndef DEBUG
+    uint8_t nt = 0;
+    uint64_t pf = 0;
+    if (parse_address(address, &pf, &nt, NULL))
+    {
+        send_validation_error(client, "Invalid address");
+        *pvalid = false;
+        return;
+    }
+    if (nt != nettype)
+    {
+        send_validation_error(client, "Invalid address network type");
+        *pvalid = false;
+        return;
+    }
+    if (is_integrated(pf))
+    {
+        send_validation_error(client, "Invalid address type");
+        *pvalid = false;
+        return;
+    }
+#endif
+    const char *worker_id = json_object_get_string(pass);
+    char *rd = strstr(worker_id, "d=");
+    if (rd && rd[2])
+    {
+        client->req_diff = strtoull(rd+2, NULL, 0);
+        log_trace("Miner requested diff: %"PRIu64, client->req_diff);
+    }
+
+    json_object *agent = NULL;
+    if (json_object_object_get_ex(params, "agent", &agent))
+    {
+        const char *user_agent = json_object_get_string(agent);
+        if (user_agent)
+        {
+            strncpy(client->agent, user_agent, 255);
+            if (strstr(user_agent, "NiceHash"))
+            {
+                client->is_nicehash = true;
+                log_trace("Client detected as NiceHash");
+            }
+            else if (strstr(user_agent, "xmr-node-proxy"))
+            {
+                client->is_xnp = true;
+                log_trace("Client detected as xmr-node-proxy");
+            }
+        }
+    }
+
+    if ((client->is_nicehash || client->is_xnp)
+            && client->mode == MODE_SELF_SELECT)
+    {
+        send_validation_error(client,
+                "mode self-select not supported by xmr-node-proxy or NiceHash");
+        *pvalid = false;
+        return;
+    }
+
+    strncpy(client->address, address, sizeof(client->address)-1);
+    strncpy(client->worker_id, worker_id, sizeof(client->worker_id)-1);
+
+    account_t *account = NULL;
+    pthread_rwlock_rdlock(&rwlock_acc);
+    HASH_FIND_STR(accounts, client->address, account);
+    pthread_rwlock_unlock(&rwlock_acc);
+    if (!account)
+    {
+        account_count++;
+        if (!client->downstream)
+            pool_stats.connected_accounts++;
+        if (upstream_event)
+            upstream_send_account_connect(1);
+        account = gbag_get(bag_accounts);
+        strncpy(account->address, address, sizeof(account->address)-1);
+        account->worker_count = 1;
+        account->connected_since = time(NULL);
+        account->hashes = 0;
+        pthread_rwlock_wrlock(&rwlock_acc);
+        HASH_ADD_STR(accounts, address, account);
+        pthread_rwlock_unlock(&rwlock_acc);
+    }
+    else
+        account->worker_count++;
+
+    uuid_t cid;
+    uuid_generate(cid);
+    bin_to_hex((const unsigned char*)cid, sizeof(uuid_t),
+            client->client_id, 32);
 
     if (client->miner_login_line)
     {
@@ -4061,7 +4591,7 @@ static void miner_on_login_to_p2pool(const char *line, size_t n, client_t *clien
     p2pool_connect(client);
 }
 
-static void miner_on_submit_to_p2pool(const char *line, size_t n, json_object *message, client_t *client)
+static void p2pool_miner_on_submit(const char *line, size_t n, json_object *message, client_t *client)
 {
     log_debug("line, n, message, client=%p is called, implemented - ECHO TO P2POOL", client);
 
@@ -4077,13 +4607,13 @@ static void miner_on_submit_to_p2pool(const char *line, size_t n, json_object *m
     char *endptr = NULL;
     const char *nptr = json_object_get_string(nonce);
     errno = 0;
-    unsigned long int uli = strtoul(nptr, &endptr, 16);
+    //unsigned long int uli = strtoul(nptr, &endptr, 16);
     if (errno != 0 || nptr == endptr)
     {
         send_validation_error(client, "nonce not an unsigned long int");
         return;
     }
-    const uint32_t result_nonce = ntohl(uli);
+    //const uint32_t result_nonce = ntohl(uli);
 
     const char *result_hex = json_object_get_string(result);
     if (strlen(result_hex) != 64)
@@ -4187,16 +4717,29 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         }
         else if (strcmp(method_name, "login") == 0)
         {
+            bool valid = true;
 #ifdef P2POOL
-            miner_on_login_to_p2pool(line, n, client);
+            p2pool_miner_on_login(line, n, message, client, &valid);
 #else
-            miner_on_login(message, client);
+            miner_on_login(message, client, &valid);
 #endif
+            if (!valid)
+            {
+                const char *miner_login_invalid = "Miner login data invalid. Removing.";
+                free(line);
+                char body[ERROR_BODY_MAX] = {0};
+                stratum_get_error_body(body, client->json_id, miner_login_invalid);
+                evbuffer_add(output, body, strlen(body));
+                log_warn("[%s:%d] %s", client->host, client->port, miner_login_invalid);
+                evbuffer_drain(input, len);
+                client_clear(bev);
+                goto unlock;
+            }
         }
         else if (strcmp(method_name, "block_template") == 0)
         {
 #ifdef P2POOL
-            const char *miner_on_block_template_not_implemented_yet = "p2pool's miner_on_block_template() not implemented yet.";
+            const char *miner_on_block_template_not_implemented_yet = "p2pool's json 'block_template' method not implemented yet.";
             free(line);
             char body[ERROR_BODY_MAX] = {0};
             stratum_get_error_body(body, client->json_id, miner_on_block_template_not_implemented_yet);
@@ -4212,7 +4755,7 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         else if (strcmp(method_name, "submit") == 0)
         {
 #ifdef P2POOL
-            miner_on_submit_to_p2pool(line, n, message, client);
+            p2pool_miner_on_submit(line, n, message, client);
 #else
             miner_on_submit(message, client);
 #endif
@@ -4220,7 +4763,7 @@ miner_on_read(struct bufferevent *bev, void *ctx)
         else if (strcmp(method_name, "getjob") == 0)
         {
 #ifdef P2POOL
-            const char *miner_send_job_not_implemented_yet = "p2pool's miner_send_job() not implemented yet.";
+            const char *miner_send_job_not_implemented_yet = "p2pool's json 'getjob' method not implemented yet.";
             free(line);
             char body[ERROR_BODY_MAX] = {0};
             stratum_get_error_body(body, client->json_id, miner_send_job_not_implemented_yet);
