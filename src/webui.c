@@ -44,6 +44,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <event2/http.h>
 #include <event2/listener.h>
 
+#ifdef P2POOL
+#include <json-c/json.h>
+#endif
+
 #include "log.h"
 #include "pool.h"
 #include "webui.h"
@@ -94,7 +98,32 @@ send_json_workers(struct evhttp_request *req, void *arg)
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
     evhttp_send_reply(req, HTTP_OK, "OK", buf);
 }
-
+#ifdef P2POOL
+static const char* load_file_as_c_string(const char *filename)
+{
+    char *buffer = 0;
+    long length;
+    FILE *f = fopen(filename, "rb");
+    if (f)
+    {
+      fseek(f, 0, SEEK_END);
+      length = ftell(f);
+      fseek(f, 0, SEEK_SET);
+      buffer = malloc(length + 1);
+      if (buffer)
+      {
+        fread(buffer, 1, length, f);
+      }
+      fclose(f);
+    }
+    if (buffer)
+    {
+        buffer[length] = 0;
+        return buffer;
+    }
+    return NULL;
+}
+#endif
 static void
 send_json_stats(struct evhttp_request *req, void *arg)
 {
@@ -102,6 +131,9 @@ send_json_stats(struct evhttp_request *req, void *arg)
     wui_context_t *context = (wui_context_t*) arg;
     struct evkeyvalq *hdrs_out = NULL;
     uint64_t ph = context->pool_stats->pool_hashrate;
+#ifdef P2POOL
+    uint64_t p2h = 0;
+#endif
     uint64_t nh = context->pool_stats->network_hashrate;
     uint64_t nd = context->pool_stats->network_difficulty;
     uint64_t height = context->pool_stats->network_height;
@@ -109,6 +141,58 @@ send_json_stats(struct evhttp_request *req, void *arg)
     uint64_t lbf = context->pool_stats->last_block_found;
     uint64_t lbfh = context->pool_stats->last_block_found_height;
     uint32_t pbf = context->pool_stats->pool_blocks_found;
+#ifdef P2POOL
+    const char* str_json_pool = load_file_as_c_string("/home/p2pool/stats/pool/stats");
+    if (str_json_pool)
+    {
+        json_object *root = json_tokener_parse(str_json_pool);
+        if (root)
+        {
+            json_object *pool_statistics = NULL;
+            json_object_object_get_ex(root, "pool_statistics", &pool_statistics);
+            if (pool_statistics)
+            {
+                json_object *hashRate = NULL;
+                json_object_object_get_ex(pool_statistics, "hashRate", &hashRate);
+                if (hashRate)
+                {
+                    if (json_object_is_type(hashRate, json_type_int))
+                    {
+                        p2h = (uint64_t)json_object_get_int64(hashRate);
+                    }
+                }
+                json_object *lastBlockFound = NULL;
+                json_object_object_get_ex(pool_statistics, "lastBlockFound", &lastBlockFound);
+                if (lastBlockFound)
+                {
+                    if (json_object_is_type(lastBlockFound, json_type_int))
+                    {
+                        lbfh = (uint64_t)json_object_get_int64(lastBlockFound);
+                    }
+                }
+                json_object *lastBlockFoundTime = NULL;
+                json_object_object_get_ex(pool_statistics, "lastBlockFoundTime", &lastBlockFoundTime);
+                if (lastBlockFoundTime)
+                {
+                    if (json_object_is_type(lastBlockFoundTime, json_type_int))
+                    {
+                        lbf = (uint64_t)json_object_get_int64(lastBlockFoundTime);
+                    }
+                }
+                json_object *totalBlocksFound = NULL;
+                json_object_object_get_ex(pool_statistics, "totalBlocksFound", &totalBlocksFound);
+                if (totalBlocksFound)
+                {
+                    if (json_object_is_type(totalBlocksFound, json_type_int))
+                    {
+                        pbf = (uint64_t)json_object_get_int64(totalBlocksFound);
+                    }
+                }
+            }
+        }
+        free(str_json_pool);
+    }
+#endif
     uint64_t rh = context->pool_stats->round_hashes;
     unsigned ss = context->allow_self_select;
     double mh[6] = {0};
@@ -126,6 +210,9 @@ send_json_stats(struct evhttp_request *req, void *arg)
 
     evbuffer_add_printf(buf, "{"
             "\"pool_hashrate\":%"PRIu64","
+#ifdef P2POOL
+            "\"p2pool_hashrate\":%"PRIu64","
+#endif
             "\"round_hashes\":%"PRIu64","
             "\"network_hashrate\":%"PRIu64","
             "\"network_difficulty\":%"PRIu64","
@@ -146,7 +233,11 @@ send_json_stats(struct evhttp_request *req, void *arg)
                     "%"PRIu64",%"PRIu64",%"PRIu64"],"
             "\"miner_balance\":%.8f,"
             "\"worker_count\": %"PRIu64
-            "}", ph, rh, nh, nd, height, ltf, lbf, lbfh, pbf,
+            "}", ph,
+#ifdef P2POOL
+            p2h,
+#endif
+            rh, nh, nd, height, ltf, lbf, lbfh, pbf,
             context->payment_threshold, context->pool_fee,
             context->pool_port, context->pool_ssl_port,
             ss, context->pool_stats->connected_accounts,
