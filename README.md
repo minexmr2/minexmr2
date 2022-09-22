@@ -15,6 +15,12 @@ like in your own p2pool instance!
 ⚡ Sep 22 2022: [minexmr2.com](https://minexmr2.com) status online and fully operational; blocks are being found by local
 p2pool instance, approx. 1.62 blocks/hour. Detailed info at [minexmr2.com](https://minexmr2.com).
 
+You donations help to evacuate my family from danger near-war zone of Ukraine.
+
+Donate XMR: 4AoKL73JHbJWSws7exQyxMYwgEvqkrpxX6hiLwLA8YXyESLHVCk7r9djR8fmeaDMSABCryvu1PjUGDYmQnkBNHum9NhDpbW
+
+Donate BTC: bc1qmg0jc8lnsqx82096cknfn9a8q6e723gm3kw23t
+
 <!--
 **minexmr2/minexmr2** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
