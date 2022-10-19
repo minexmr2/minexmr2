@@ -2,9 +2,8 @@
 
 This is [minexmr2.com](https://minexmr2.com) Monero mining pool implementation based
 on [jtgrassie monero-pool](https://github.com/jtgrassie/monero-pool).
-Note though, nearly 50% of source code in added/rewritten.
-Thus all the build instructions are there.
-Just instead of 'make release', type 'make release_p2pool', or see build instructions below.
+Note though, nearly 50% of source code has been added/rewritten.
+See build instructions below.
 
 - 🔭 FULL support of [SChernykh p2pool](https://github.com/SChernykh/p2pool) has been implemented!
 Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider.
@@ -90,15 +89,16 @@ Billing info recorded is being sent to TRUSTED instance that performs all the pa
 
 [pool-edge.conf](./pool-edge.conf) is a typical configuration file for UPSTREAM instance. Don't forget to rename it to pool.conf in your instance's folder.
 
-[pool-trusted.conf](./pool-trusted.conf) is a typical configuration file for UPSTREAM instance. Don't forget to rename it to pool.conf in your instance's folder.
+[pool-trusted.conf](./pool-trusted.conf) is a typical configuration file for TRUSTED instance.
+Don't forget to rename it to pool.conf in your pool instance's folder.
 
-Important! Your pool's wallet must contain some XMR balance, for example 0.05XMR, and the whole line in configuration file id dedicated to that:
+Important! Your pool's wallet must contain some XMR balance, for example 0.05XMR, and the whole line in configuration file is dedicated to that:
 
 ```
 p2pool-safe-balance = 0.05
 ```
 
-If something goes wrong, a built-in watchdog routine preserves wallet balance to decrease below 0.05XMR (in this example).
+If something goes wrong, a built-in watchdog routine preserves wallet balance from decrease below 0.05XMR (in this example).
 
 ### You must start executables in the following order
 
@@ -114,6 +114,10 @@ TRUSTED
 5. monero-pool as Linux user/server named "monero-pool-trusted"
 
 Shutdown should be performed in reversed order.
+
+Note, you can use several UPSTREAM bundles configured to communicate with the same TRUSTED bundle.
+If even TRUSTED bundle is temporarily offline, UPSTREAM bundle does record all the shares/billing info
+that will be transferred to TRUSTED bundle when it comes back online.
 
 ## Donations
 
