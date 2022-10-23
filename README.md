@@ -1,8 +1,9 @@
 # Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider 👋
 
 This is [minexmr2.com](https://minexmr2.com) Monero mining pool implementation based
-on [jtgrassie monero-pool](https://github.com/jtgrassie/monero-pool).
-Note though, nearly 50% of source code has been added/rewritten.
+on [jtgrassie's monero-pool](https://github.com/jtgrassie/monero-pool).
+Just nearly 10% of code is added/rewritten, because jtgrassie's monero-pool offers a robust base to develop minexmr2.com pool
+as a proxy to decentralized p2pool.
 See build instructions below.
 
 - 🔭 FULL support of [SChernykh p2pool](https://github.com/SChernykh/p2pool) has been implemented!
@@ -12,6 +13,9 @@ But all the statistics, billing and fault-tolerant logic remains in minexmr2.com
 like in your own p2pool instance!
 
 ## Latest news
+
+⚡ Oct 23 2022: [minexmr2.com](https://minexmr2.com) site and this README texts have been fixed against discussion
+in [reddit post](https://www.reddit.com/r/Monero/comments/y7w0hy/how_to_make_decentralized_p2pool_a_top_1_mining/).
 
 ⚡ Oct 18 2022: [minexmr2.com](https://minexmr2.com) pool is rebuilt against
 [Monero Fluorine Fermi, Point Release 1.2](https://github.com/monero-project/monero/releases/tag/v0.18.1.2)
