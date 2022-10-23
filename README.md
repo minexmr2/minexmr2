@@ -8,7 +8,8 @@ See build instructions below.
 
 - 🔭 FULL support of [SChernykh p2pool](https://github.com/SChernykh/p2pool) has been implemented!
 Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider.
-If you mine with us, all your hashrate is contributed to p2pool, helping to empower decentralization.
+If you mine with us, all your hashrate is contributed to p2pool, helping to empower decentralization
+(note though, there is no formal verification possible against this pool can't perform a classic 51% attack on the network).
 But all the statistics, billing and fault-tolerant logic remains in minexmr2.com. You have nothing to build, deploy, upgrade and maintain
 like in your own p2pool instance!
 
