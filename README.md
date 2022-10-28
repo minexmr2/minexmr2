@@ -8,17 +8,16 @@ See build instructions below.
 
 - 🔭 FULL support of [SChernykh p2pool](https://github.com/SChernykh/p2pool) has been implemented!
 Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider.
-If you mine with us, all your hashrate is completely contributed to p2pool.
-It can potentially empower decentralization, if most of centralized pools will use
-minexmr2's open source implementation based on p2pool (or other open source implementation based on p2pool).
-Note though, *there is no formal verification possible against this pool can't perform a classic 51% attack on the network*.
-All the statistics, billing and fault-tolerant logic processed by minexmr2.com. You have nothing to build, deploy, upgrade and maintain
-like in your own p2pool instance!
+You have nothing to build, deploy, upgrade and maintain
+like in your own p2pool instance.
+If you mine with us, you get your pending balance update as regular as p2pool finds new block.
+Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
 
-⚡ Oct 27 2022: [minexmr2.com](https://minexmr2.com) site and this README texts have been fixed against further discussion
+⚡ Oct 27-28 2022: [minexmr2.com](https://minexmr2.com) site and this README texts have been fixed against further discussion
 in [reddit post](https://www.reddit.com/r/MoneroMining/comments/yehmdy/danger_from_hashvaultpro_and_how_is_decentralized/).
+Wrong text about resistance to 51% attack has been completely removed.
 
 ⚡ Oct 23 2022: [minexmr2.com](https://minexmr2.com) site and this README texts have been fixed against discussion
 in [reddit post](https://www.reddit.com/r/Monero/comments/y7w0hy/how_to_make_decentralized_p2pool_a_top_1_mining/).
