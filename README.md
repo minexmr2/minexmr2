@@ -15,6 +15,9 @@ Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
 
+⚡ Nov 01 2022: [minexmr2.com](https://minexmr2.com) site has new section: Useful Resources
+(Some Monero-related 3rd party resources we found useful).
+
 ⚡ Oct 27-28 2022: [minexmr2.com](https://minexmr2.com) site and this README texts have been fixed against further discussion
 in [reddit post](https://www.reddit.com/r/MoneroMining/comments/yehmdy/danger_from_hashvaultpro_and_how_is_decentralized/).
 Wrong text about resistance to 51% attack has been completely removed.
