@@ -6,6 +6,8 @@ Just nearly 10% of code is added/rewritten, because jtgrassie's monero-pool offe
 as a proxy to decentralized p2pool.
 See build instructions below.
 
+The name MINEXMR2 is inspired by departed old-school MINEXMR pool and conceptual decentralized p2pool. In no way this pool is related to original MINEXMR.
+
 - 🔭 FULL support of [SChernykh p2pool](https://github.com/SChernykh/p2pool) has been implemented!
 Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider.
 You have nothing to build, deploy, upgrade and maintain
