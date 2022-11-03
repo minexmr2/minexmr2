@@ -341,6 +341,7 @@ static struct event_base *pool_base;
 static struct event *listener_event;
 static struct event *timer_30s;
 static struct event *timer_120s;
+static struct event *timer_120s_trusted;
 static struct event *timer_10m;
 static struct event *signal_usr1;
 static uint32_t extra_nonce;
@@ -1159,12 +1160,21 @@ update_pool_hr(void)
     uint64_t hr = 0;
     client_t *c = (client_t*)gbag_first(bag_clients);
     while ((c = gbag_next(bag_clients, 0)))
+    {
         hr += (uint64_t) c->hr_stats.avg[0];
+        if (!upstream_event)
+            hr_update(&c->hr_stats);
+    }
+    account_t *a = (account_t*)gbag_first(bag_accounts);
+    while ((a = gbag_next(bag_accounts, 0)))
+    {
+        if (!upstream_event)
+            hr_update(&a->hr_stats);
+    }
     log_info("Pool hashrate: %"PRIu64, hr);
     log_info("Pool hashrate accumulating downstreams: %d", (*config.trusted_listen) && (config.trusted_port));
-    if (upstream_event)
-        return;
-    pool_stats.pool_hashrate = hr;
+    if (!upstream_event)
+        pool_stats.pool_hashrate = hr;
 }
 
 static void
@@ -2571,7 +2581,8 @@ rpc_on_last_block_header(const char* data, rpc_callback_t *callback)
     pool_stats.network_difficulty = top->difficulty;
     pool_stats.network_hashrate = top->difficulty / BLOCK_TIME;
     pool_stats.network_height = top->height;
-    update_pool_hr();
+    if (!(*config.trusted_listen))
+        update_pool_hr();
 
     if (need_new_template)
     {
@@ -3461,21 +3472,22 @@ upstream_on_event(struct bufferevent *bev, short error, void *ctx)
     }
     if (error & BEV_EVENT_EOF)
     {
-        log_debug("Upstream disconnected");
+        log_info("Upstream disconnected");
     }
     else if (error & BEV_EVENT_ERROR)
     {
-        log_debug("Upstream connection error: %d", errno);
+        log_info("Upstream connection error: %d", errno);
     }
     else if (error & BEV_EVENT_TIMEOUT)
     {
-        log_debug("Upstream timeout");
+        log_info("Upstream timeout");
     }
     /* Update stats due to upstream disconnect */
     if (pool_stats.connected_accounts != account_count)
     {
         pool_stats.connected_accounts = account_count;
-        update_pool_hr();
+        if (!(*config.trusted_listen))
+            update_pool_hr();
     }
     /* Wait and try to reconnect */
     if (upstream_event)
@@ -4038,6 +4050,15 @@ timer_on_120s(int fd, short kind, void *ctx)
     fetch_last_block_header();
     struct timeval timeout = { .tv_sec = 120, .tv_usec = 0 };
     evtimer_add(timer_120s, &timeout);
+}
+
+static void
+timer_on_120s_trusted(int fd, short kind, void *ctx)
+{
+    log_info("Updating pool and miners' hashrates...");
+    update_pool_hr();
+    struct timeval timeout = { .tv_sec = 120, .tv_usec = 0 };
+    evtimer_add(timer_120s_trusted, &timeout);
 }
 
 static void
@@ -5899,6 +5920,9 @@ trusted_run(void *ctx)
         goto bail;
     }
 
+    timer_120s_trusted = evtimer_new(trusted_base, timer_on_120s_trusted, NULL);
+    timer_on_120s_trusted(-1, EV_TIMEOUT, NULL);
+
     event_base_dispatch(trusted_base);
 
 bail:
@@ -5967,6 +5991,13 @@ run(void)
     signal_usr1 = evsignal_new(pool_base, SIGUSR1, sigusr1_handler, NULL);
     event_add(signal_usr1, NULL);
 
+    if (*config.upstream_host && config.upstream_port)
+    {
+        log_info("Starting upstream connection to: %s:%d",
+                config.upstream_host, config.upstream_port);
+        upstream_connect();
+    }
+
     if (*config.trusted_listen && config.trusted_port)
     {
         log_info("Starting trusted listener on: %s:%d",
@@ -5977,13 +6008,6 @@ run(void)
             goto bail;
         }
         pthread_detach(trusted_th);
-    }
-
-    if (*config.upstream_host && config.upstream_port)
-    {
-        log_info("Starting upstream connection to: %s:%d",
-                config.upstream_host, config.upstream_port);
-        upstream_connect();
     }
 
     if (!config.block_notified)
