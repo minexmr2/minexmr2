@@ -87,7 +87,7 @@
             "algo": null,
             "coin": "xmr",
             "url": "minexmr2.com:8443",
-            "user": "48vtRRYH7NUb8c4o9wAxWD1daB4NcwooD9TW4p2oLRMC9g8YDJzUska3NQmb4kyzKZZZBepUaodAmcKtgrstPXwr9f2JCya",
+            "user": "4AoKL73JHbJWSws7exQyxMYwgEvqkrpxX6hiLwLA8YXyESLHVCk7r9djR8fmeaDMSABCryvu1PjUGDYmQnkBNHum9NhDpbW",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
@@ -107,7 +107,7 @@
     "dmi": true,
     "syslog": false,
     "tls": {
-        "enabled": false,
+        "enabled": true,
         "protocols": null,
         "cert": null,
         "cert_key": null,

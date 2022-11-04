@@ -8,25 +8,25 @@
 
 <link rel="icon" href="minexmr2-header2.svg" type="image/png"/>
 
-<title>Welcome MINEXMR2, goodbye MINEXMR</title>
+<title>MINEXMR2: hashrate from decentralized p2pool</title>
 <!-- Begin formerly Jekyll SEO tag v2.6.1 -->
 <meta name="generator" content="Jekyll v3.8.7" />
-<meta name="author" content="Welcome MINEXMR2, goodbye MINEXMR" />
+<meta name="author" content="MINEXMR2: hashrate from decentralized p2pool" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://minexmr2.com" />
-<meta property="og:title" content="Welcome MINEXMR2, goodbye MINEXMR" />
+<meta property="og:title" content="MINEXMR2: hashrate from decentralized p2pool" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="MINEXMR2.COM, An open-source, high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language" />
-<meta property="og:description" content="MINEXMR2.COM, An open-source, high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language" />
+<meta name="description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider" />
+<meta property="og:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider" />
 <link rel="canonical" href="https://minexmr2.com/" />
 <meta property="og:url" content="https://minexmr2.com/" />
-<meta property="og:site_name" content="Welcome MINEXMR2, goodbye MINEXMR" />
+<meta property="og:site_name" content="MINEXMR2: hashrate from decentralized p2pool" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:url" content="https://minexmr2.com" />
-<meta property="twitter:title" content="Welcome MINEXMR2, goodbye MINEXMR" />
-<meta property="twitter:description" content="MINEXMR2.COM, An open-source, high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language" />
+<meta property="twitter:title" content="MINEXMR2: hashrate from decentralized p2pool" />
+<meta property="twitter:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider" />
 <script type="application/ld+json">
-{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/minexmr2-header2-1024.png"}},"headline":"Welcome MINEXMR2, goodbye MINEXMR","url":"https://minexmr2.com/","description":"MINEXMR2.COM, An open-source, high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language","name":"Welcome MINEXMR2, goodbye MINEXMR","@context":"https://schema.org"}
+{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/minexmr2-header2.svg"}},"headline":"MINEXMR2: hashrate from decentralized p2pool","url":"https://minexmr2.com/","description":"First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider","name":"MINEXMR2: hashrate from decentralized p2pool","@context":"https://schema.org"}
 </script>
 
 <style>
@@ -35,6 +35,8 @@
     src: url('IBMPlexSans-Regular-Latin1.woff2');
     font-display: swap;
 }
+
+* {margin:0; padding:0;}
 
 html, body {
   overflow-x: hidden;
@@ -45,18 +47,13 @@ body {
 }
 
 body {
-    margin: 0;
-    padding: 0;
-}
-
-body {
     font-family: 'IBMPlexSans', Helvetica, sans-serif;
-    font-size: 16px;
+    font-size: 1em;
 }
 header {
     font-size: larger;
-    font-weight: bold;
-    padding-bottom: 1em;
+    font-weight: normal;
+    text-align: center;
 }
 table {
     padding-bottom: 1em;
@@ -75,7 +72,7 @@ td:last-child {
     min-width: 10ch;
     max-width: 10ch;
     overflow: hidden;
-    border-bottom: 1px dashed black;
+    border-bottom: 1px dashed var(--text-color);
     text-overflow: ellipsis;
     white-space: nowrap;
     word-wrap: unset;
@@ -88,25 +85,27 @@ td:last-child {
 }
 
 body {
-    background-color: #eee;
+    background-color: #ddd;
     color: #333;
 }
 
 h1.menu {
-    background-color: #a00;
+    background-color: #903;
     color: #fff;
-    padding: 4px;
-    box-shadow: rgba(0, 0, 0, 0.25) 0px 5px 10px;
+    padding: 8px;
+    font-size: 1.2em;
+    margin-top: -4px;
+box-shadow: rgba(0, 0, 0, 0.30) 0px 20px 10px -10px, rgba(0, 0, 0, 0.60) 0px 12px 5px -10px;
 }
 
 h2 {
     text-align: center;
-    padding: 4px;
+    font-size: 1.75em;
+    padding: 8px;
 }
 
-h2.special {
-    margin-bottom: -10px; padding-left: 150px; padding-right: 150px;
-    font-size: 30px;
+.special {
+    padding-left: 50px; padding-right: 50px;
 }
 
 .font_menu {
@@ -114,43 +113,168 @@ h2.special {
 }
 
 h3 {
-    background-color: #f63;
-    color: #444;
-    padding: 4px;
+    text-align: center;
+    padding: 8px;
+    font-size: 1.5em;
+}
+
+h4 {
+    text-align: center;
+    padding: 8px;
+    font-size: 1.0em;
+}
+
+h5 {
+    text-align: center;
+    padding: 8px;
+    font-size: 0.9em;
+}
+
+img.inline_header {
+    vertical-align: bottom;
+    margin-bottom: -30px;
+    height: 57px;
+    width: auto;
+}
+
+img.inline_header2 {
+    vertical-align: bottom;
+    margin-bottom: -10px;
+    height: 48px;
+    width: auto;
 }
 
 p {
-    padding: 4px;
+    padding: 8px;
 }
 
-header.stickup {
-    margin-top: -16px;
+table.stats {
+    width: 100%;
 }
 
-table.stickup {
-    margin-top: -8px;
+table.stats th {
+    text-align: right;
+    width: 50%;
+    font-weight: normal;
+}
+
+table.stats td {
+    text-align: left;
+    font-weight: bold;
+}
+
+a:link {
+    color: var(--link-color);
+}
+
+a:visited {
+    color: var(--link-color);
+}
+
+a:active {
+    color: var(--link-color);
+}
+
+a:hover {
+    color: var(--link-color-hover);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.center { text-align: center; }
+
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.episode2 {
+  position: relative;
+    width: 46.25%;
+    margin-left: 2.5%;
+    margin-top: 2.5%;
+  border: 2px dotted var(--border-color);
+  margin-bottom: 0;
+box-shadow: rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;
+}
+
+.episode1_top_shadow {
+box-shadow: rgba(0, 0, 0, 0.45) 0px -25px 20px -20px !important;
+}
+
+.episode1_no_shadow {
+box-shadow: none !important;
+}
+
+.episode2:nth-last-child(-n+2) {
+    margin-bottom: 2.5%;
+}
+
+.episode1 {
+  position: relative;
+  border-top: 2px dotted var(--border-color);
+  border-left: 2px dotted var(--border-color);
+  border-right: 2px dotted var(--border-color);
+    margin-left: 2.5%;
+    margin-right: 2.5%;
+box-shadow: rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;
+}
+
+.episode1:last-child {
+  border-bottom: 2px dotted var(--border-color);
+}
+
+.episode__number {
+  font-size: 1em;
+  text-align: center;
+  height: calc(1em + 20px);
+  padding: 8px;
+}
+
+.episode__content {
 
 }
 
-p.stickup {
-    margin-top: 0px;
-
+.episode__content .story {
+  line-height: 1.5em;
 }
 
-p.stickup2 {
-    margin-top: -16px;
+.episode__content .story header {
+    margin-top: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.footnote .episode__content .story {
+    font-size: 12px;
+  line-height: 14px;
+}
+
+.fullwidth {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.borderzero {
+  border: 0px dotted #fff !important;
+  background-image: none !important;
 }
 
 .important {
     background-color: #555;
     color: #eee;
-    padding: 4px;
 }
 
 .important2 {
     background-color: #fff;
     color: #000;
-    padding: 4px;
 }
 
 .important2grad {
@@ -160,64 +284,278 @@ p.stickup2 {
 .important3 {
     background-color: #ccc;
     color: #000;
-    padding: 4px;
 }
 
-table.full_width {
+.container_margin_footnote {
+margin-top: 28px;
+}
+
+.container_margin_donate {
+margin-top: 26px;
+}
+
+.episode__content .story p {
+    font-size: 0.9em;
+    line-height: 1.4em;
+}
+
+.episode__content .story p:first-of-type {
+margin-top: 20px;
+}
+
+.episode__content .story ul {
+    font-size: 0.9em;
+    line-height: 1.4em;
+margin-left: 32px;
+}
+
+.footnote .episode__content .story p:first-of-type {
+margin-top: 0px;
+}
+
+
+
+/*** Light Mode Theme ***/
+[data-theme="default"] {
+  --body-bg-color: #ccc;
+  --card-bg-color: #eee;
+  --border-color: #fff;
+  --text-color: #333;
+  --switch-on-color: #444352;
+  --switch-off-color: #ccc;
+  --toggler-color: #fff;
+  --link-color: #369;
+  --link-color-hover: #39f;
+  --slider2-color: #fff;
+}
+/* Dark Mode Theme */
+[data-theme="dark"] {
+  --body-bg-color: #444;
+  --card-bg-color: #555;
+  --border-color: #999;
+  --text-color: #fff;
+  --toggler-color: #444352;
+  --switch-on-color: #fff;
+  --switch-off-color: #ccc;
+  --link-color: #39c;
+  --link-color-hover: #3cf;
+  --slider2-color: #ccc;
+}
+
+.container {
+  color: var(--text-color);
+  background-color: var(--body-bg-color);
+  transition: color .45s ease-in, background-color .45s ease-in;
+}
+
+.inner_wrapper {
+  position: relative;
     width: 100%;
 }
 
-table.full_width th {
-    text-align: right;
-    width: 50%;
-    font-weight: normal;
+.inner_wrapper2 {
+  position: relative;
+    width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  flex-wrap: wrap;
 }
 
-table.full_width td {
-    text-align: left;
-    font-weight: bold;
+/*** Card ***/
+.card {
+  color: var(--text-color);
+  background-color: var(--card-bg-color);
+  transition: color .45s ease-in,
+              background-color .45s ease-in;
+
 }
 
-img.header {
-    vertical-align: bottom;
-    height: 75px;
-    width: auto;
-    margin-bottom: -33px;
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 10px;
+  float: right;
+}
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--switch-off-color);
+  -webkit-transition: .4s;
+  transition: .4s;
+  font-size: 8px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 8px;
+  width: 8px;
+  left: 2px;
+  bottom: 1px;
+  background-color: var(--toggler-color);
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: var(--switch-on-color);
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--switch-on-color);
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(11px);
+  -ms-transform: translateX(11px);
+  transform: translateX(11px);
+}
+/* Rounded sliders */
+.slider.round {
+  border-radius: 10px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+.slider2 {
+  position: absolute;
+  cursor: pointer;
+  top: 12px;
+  left: 0px;
+  right: 0;
+  bottom: 0;
+  font-size: 8px;
+  color: var(--slider2-color);
+  transition: color .45s ease-in;
+  text-align: center;
 }
 
-a:link {
-    color: #369;
+
+
+@media only screen and (min-width: 768px) and (max-width: 1280px) {
+
+
+
 }
 
-a:visited {
-    color: #369;
+
+@media only screen and (max-device-width: 767px) and (orientation: landscape) {
+
+.episode1 .episode__content .story p {
+    font-size: 10px;
+  line-height: 12px;
 }
 
-a:active {
-    color: #369;
+.episode1 .episode__content .story ul {
+    font-size: 10px;
+  line-height: 12px;
+
 }
 
-a:hover {
-    color: #39f;
+.episode2 .episode__content .story p {
+    font-size: 1em;
+    line-height: 1.5em;
 }
+
+.episode2 .episode__content .story ul {
+    font-size: 1em;
+    line-height: 1.5em;
+
+}
+
+.footnote .episode__content .story p {
+    font-size: 8px;
+  line-height: 10px;
+}
+
+.footnote .episode__content .story ul {
+    font-size: 8px;
+  line-height: 10px;
+}
+
+}
+
 
 @media only screen and (max-width: 767px) {
 
-body {
-    font-size: 14px;
+h1.menu {
+    font-size: 10px;
+    padding: 8px;
+    box-shadow: rgba(0, 0, 0, 0.50) 0px 12px 12px -5px, rgba(0, 0, 0, 0.50) 0px 7px 5px -5px;
+    line-height: 6px;
 }
 
-h2.special {
-    padding-left: 4px; padding-right: 4px;
-    font-size: 26px;
+img.inline_header {
+    margin-bottom: -20px;
+    height: 30px;
 }
 
-img.header {
-    vertical-align: bottom;
-    height: 25px;
-    width: auto;
-    margin-bottom: 0px;
+.slider {
+  top: -2px;
+  bottom: 2px;
 }
+
+.slider2 {
+  top: 10px;
+}
+
+.special {
+    padding-left: 25px; padding-right: 25px;
+}
+
+.episode2 {
+    width: 100%;
+    margin-right: 2.5%;
+}
+
+.episode2:last-child {
+    margin-top: 0;
+    margin-bottom: 2.5%;
+}
+
+.episode__content {
+
+}
+
+.episode__content .story {
+
+}
+
+.episode__number {
+
+}
+
+.container_margin {
+margin-top: 16px;
+}
+
+.container_margin_footnote {
+margin-top: 26px;
+}
+
+.container_margin_donate {
+margin-top: 24px;
+}
+
+.episode__content .story p {
+    font-size: 1em;
+    line-height: 1.5em;
+}
+
+.episode__content .story ul {
+    font-size: 1em;
+    line-height: 1.5em;
 
 }
 </style>
@@ -226,126 +564,316 @@ img.header {
 
 <body>
 
-<h1 class="menu font_menu" style="margin-top: -4px;"><img src="minexmr2-header.svg" class="header" alt="MINEXMR2 Monero mining pool header icon" />Welcome&nbsp;MINEXMR2, goodbye&nbsp;MINEXMR</h1>
 
-<h2 class="font_menu special"><img src="minexmr2-header2.svg" style="vertical-align: middle; height: 75px; width: auto; margin-top: -4px;" alt="MINEXMR2 Monero mining pool header icon 2" />&nbsp;MINEXMR2.COM
-<br/><p style="margin-top: -20px;"><small>An open-source, high-load, high-secure, fault-tolerant alternative to minexmr.com Monero mining pool written in C programming language</small></p></h2>
 
-<p class="important3">
-The single payout mechanism is PPLNS, which favors loyal pool miners.
-</p>
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
 
-<header class="important2 important2grad stickup">Pool Statistics <small><small>(Statistics API url (returns JSON): <b>https://minexmr2.com/stats</b>)</small></small></header>
 
-<table class="important2 important2grad full_width stickup">
-    <tr><th>Pool HR:</th><td id="pool_hashrate">service unavailable</td></tr>
-    <tr><th>Network HR:</th><td id="network_hashrate"></td></tr>
-    <tr><th>Network height:</th><td id="network_height"></td></tr>
-    <tr><th>Blocks found:</th><td id="pool_blocks_found"></td></tr>
-    <tr><th>Last block found:</th><td id="last_block_found"></td></tr>
-    <tr><th>Last block found height:</th><td id="last_block_found_height"></td></tr>
-    <tr><th>Last template:</th><td id="last_template_fetched"></td></tr>
-    <tr><th>Round HR:</th><td id="round_hashrate"></td></tr>
-    <tr><th>Round hashes:</th><td id="round_hashes"></td></tr>
-    <tr><th>Payment threshold:</th><td id="payment_threshold"></td></tr>
-    <tr><th>Pool fee:</th><td id="pool_fee"></td></tr>
-    <tr style="display: none;"><th>Pool port:</th><td id="pool_port"></td></tr>
-    <tr style="display: none;"><th>Pool SSL port:</th><td id="pool_ssl_port"></td></tr>
-    <tr style="display: none;"><th>Allow self-select:</th><td id="allow_self_select"></td></tr>
-    <tr><th>Miners connected:</th><td id="connected_miners"></td></tr>
-    <tr class="miner"><th>Your HR:</th><td id="miner_hashrate"></td></tr>
-    <tr class="miner"><th>Balance due:</th><td id="miner_balance"></td></tr>
-    <tr><th>Miner address:</th><td id="address" contenteditable="true"></td></tr>
-</table>
+<h1 class="menu font_menu"><img src="minexmr2-header.svg" class="inline_header" alt="MINEXMR2 Monero mining pool header icon"/><span>MINEXMR2: hashrate from decentralized p2pool</span>
+      <label class="switch">
+        <input id="toggler" type="checkbox"/>
+        <span class="slider round"></span>
+        <div class="slider2">NIGHT</div>
+      </label>
+</h1>
 
-<p class="important stickup">Stratum pool domain: <b>minexmr2.com</b>.
-<br/>Stratum pool port: <b>4444</b>.
-<br/>Stratum SSL pool port: <b>8443</b>.
-</p>
+<div style="margin-top: 20px; margin-bottom: 20px;">
+<h2 class="font_menu special"><img src="minexmr2-header2.svg" class="inline_header2" alt="MINEXMR2 Monero mining pool header icon 2"/><span>MINEXMR2</span></h2>
+<h3 class="font_menu special">First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider</h3>
+<h4 class="font_menu special">Established 2022-09-15 UTC&nbsp;10:00</h4>
+<h5 class="font_menu special">The name MINEXMR2 is inspired by departed old-school MINEXMR pool and conceptual decentralized p2pool. In no way this pool is related to original MINEXMR</h5>
+</div>
 
-<p class="important3 stickup2">
-Use <a href="https://github.com/xmrig/xmrig" target="_blank">github.com/xmrig/xmrig</a>
-with user <b>&lt;your-Monero-wallet-address&gt;</b>, password <b>&lt;any&gt;</b>. No registration required.
-Once your miner submits few shares, enter <b>&lt;your-Monero-wallet-address&gt;</b>
-into table below (column <b>"Miner&nbsp;address:</b>")
-and see your miner's performance and balance (just blur out of the column).
-Nicehash mode and xmrig-proxy are supported. Example xmrig configuration files that are proven to work:
-<a href="xmrig-notls/config.json" target="_blank">config.json&nbsp;(no&nbsp;tls)</a>,
-<a href="xmrig-tls/config.json" target="_blank">config.json&nbsp;(tls)</a>.
-Place one of them into the folder containing your xmrig executable (don't forget to replace test XMR address
-to your one).
-</p>
 
-<p class="important2 stickup2">
-MINEXMR2 pool is ready to Monero upcoming network upgrade (fork) near
-<a href="https://xmr.noctism.com" target="_blank">Aug&nbsp;12&nbsp;2022</a>.
-Note: mining software will not be affected.
-<b>Update: hard-fork has been done successfully</b>.
-</p>
+</div>
+</div>
 
-<h2>Brief introduction to the pool</h2>
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 episode1_top_shadow card">
+    <div class="episode__number"><small><small><small>(Statistics API url (JSON-RPC): <b>https://minexmr2.com/stats</b>)</small></small></small></div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Pool Statistics</header>
+        <table class="stats">
+            <tr><th>Hashrate:</th><td id="pool_hashrate">service unavailable</td></tr>
+            <tr style="display: none;"><th>Round hashrate:</th><td id="round_hashrate"></td></tr>
+            <tr style="display: none;"><th>Round hashes:</th><td id="round_hashes"></td></tr>
+            <tr><th>Payment threshold:</th><td id="payment_threshold"></td></tr>
+            <tr><th>Pool fee:</th><td id="pool_fee"></td></tr>
+            <tr style="display: none;"><th>Pool port:</th><td id="pool_port"></td></tr>
+            <tr style="display: none;"><th>Pool SSL port:</th><td id="pool_ssl_port"></td></tr>
+            <tr style="display: none;"><th>Allow self-select:</th><td id="allow_self_select"></td></tr>
+            <tr><th>Miners connected:</th><td id="connected_miners"></td></tr>
+            <tr class="miner"><th>Your hashrate:</th><td id="miner_hashrate"></td></tr>
+            <tr class="miner"><th>Pending balance:</th><td id="miner_balance"></td></tr>
+            <tr><th>Miner address:</th><td id="address" contenteditable="true"></td></tr>
+        </table>
+      </div>
+    </div>
+  </article>
+  <article class="episode1 card">
+    <div class="episode__number"><small><small><small>(Statistics API url (JSON-RPC): <b>https://minexmr2.com/stats</b>)</small></small></small></div>
+    <div class="episode__content">
+      <div class="story">
+        <header>P2pool Statistics<br/><sup><small><small>(Since 2022-10-18 UTC&nbsp;06:00 p2pool&nbsp;v2.4)</small></small></sup></header>
+        <table class="stats">
+            <tr><th>Hashrate:</th><td id="p2pool_hashrate">service unavailable</td></tr>
+            <tr><th>Blocks found:</th><td id="pool_blocks_found"></td></tr>
+            <tr><th>Last block found:</th><td id="last_block_found"></td></tr>
+            <tr><th>Last block height:</th><td id="last_block_found_height"></td></tr>
+        </table>
+      </div>
+    </div>
+  </article>
+  <article class="episode1 card">
+    <div class="episode__number"><small><small><small>(Statistics API url (JSON-RPC): <b>https://minexmr2.com/stats</b>)</small></small></small></div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Network Statistics</header>
+        <table class="stats">
+            <tr><th>Hashrate:</th><td id="network_hashrate">service unavailable</td></tr>
+            <tr><th>Last block found:</th><td id="last_template_fetched"></td></tr>
+            <tr><th>Last block height:</th><td id="network_height"></td></tr>
+        </table>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
 
-<p>
-<b>This pool's owner is absolutely independent on previous minexmr.com pool's owner</b>.
-The goal is to create an open&nbsp;source yet much more elegant, spartan, robust incarnation of legendary old-school Monero mining pool,
-preserving well known name. There is no single boring detail in web-UI. No registration, no cookies,
-no personal data collection. See what garbage violates your privacy do you see in top&nbsp;3
-<a href="https://miningpoolstats.stream/monero" target="_blank">miningpoolstats.stream/monero</a>:
-nanopool.org, really?!
-</p>
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+<div class="container_margin"></div>
+</div>
+</div>
 
-<p>
-One may ask: why I have to trust in this brand new pool? Just because <b>payment threshold is as low as 0.01XMR</b>,
-it becomes possible because of Monero tail emission allows transaction fees to be as low as 0.00004XMR.
-You simply can't lose significant Monero funds by definition even in most worse case!
-</p>
+<div class="container" data-theme="dark">
+<div class="inner_wrapper2">
+  <article class="episode2 card">
+    <div class="episode__number">Killer Feature 1</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Stratum pool domain: <b>minexmr2.com</b>.<br/>Pool port: <b>4444</b>.<br/>TLS pool port: <b>8443</b></header>
+        <p>
+            ...And your valid Monero address (4... or 8...).
+            That's all you need to start mining. No registration, no cookies, no personal data collection.
+            Your account will be created automatically on first share accepted. You receive payments each time your pending balance grows above 0.01XMR.
+            You can use any Monero miner.
+        </p><p>
+            Currently <a href="https://github.com/xmrig/xmrig" target="_blank">xmrig</a> is the only tested, both NoTLS and TLS connection modes.
+            Here are ready to use xmrig config files. Just place one of it
+            in the same directory with xmrig executable and run it. <b>Do not forget to replace XMR address in
+            <a href="xmrig-notls/config.json" target="_blank">config-notls</a> or <a href="xmrig-tls/config.json" target="_blank">config-tls</a>.
+            to your one</b>. Or, if you just want to donate, don't change anything.
+        </p>
+      </div>
+    </div>
+  </article>
+  <article class="episode2 card">
+    <div class="episode__number">Killer Feature 2</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Effective hashrate provided by decentralized p2pool makes your payouts regular</header>
+        <p>
+            No more tears about pool's hashrate and how often new block is being found. Payments from
+            <a href="https://github.com/SChernykh/p2pool" target="_blank">p2pool</a>
+            inside are being received on every block found by
+            p2pool
+            with its current hashrate.
+            All the billing is accurately performed by MINEXMR2 pool based on PPLNS concept,
+            thus your pending balance is being updated on every block found by p2pool too.
+            Each time it reaches 0.01XMR, automatic payout to you will be performed.
+        </p><p>
+            Consider, for example, typical p2pool's hashrate is 145Mh/s, network hashrate is 2.67GH/s,
+            average number of blocks found by p2pool is 1.62&nbsp;blocks&nbsp;per&nbsp;hour.
+            Thus, you will receive your pending balance updates nearly 1.62&nbsp;times&nbsp;per&nbsp;hour, amounts are proportional to your miner's hashrate (PPLNS).
+            Because each time your balance reaches 0.01XMR you receive the payment, if your own hashrate is great enough,
+            you can receive payouts as often as approx. 1.62&nbsp;times&nbsp;per&nbsp;hour.
+        </p>
+      </div>
+    </div>
+  </article>
+  <article class="episode2 card">
+    <div class="episode__number">Killer Feature 3</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>No more dust payments like 0.0003XMR from p2pool and hence huge spending fees</header>
+        <p>
+            Main problem of decentralized p2pool is its reward algorithm generating enormous amount of dust payments for not strong-enough miners.
+            If they try to spend p2pool rewards, transaction generation takes a lot of time and can fail due to 198-inputs limit.
+            Furthermore, even if transaction is generated successfully, a HUGE fee is subtracted from a miner's wallet balance.
+        </p>
+        <p>
+            MINEXMR2 accumulates all the dust payments from p2pool for you, and sends you 0.01XMR chunks, allowing to easily spend your balance.
+            Meanwhile you get legendary Monero ultra-tiny fees like 0.00005XMR.
+        </p>
+        <p>
+            We hope 0.01XMR is useful for most users. First, 0.01XMR payouts are being sent often enough, and you can't lose more than 0.01XMR in a worst case.
+            If something goes wrong, please immediately email to <b>minexmr2@tutanota.com</b> for manual payouts to you.
+        </p>
+      </div>
+    </div>
+  </article>
+  <article class="episode2 card">
+    <div class="episode__number">Killer Feature 4</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>MINEXMR2 is an open-source mining pool written in C programming language under GPLv3 license</header>
+        <p>
+            Pool implementation in C is forked from
+            <a href="https://github.com/jtgrassie/monero-pool" target="blank">jtgrassie's&nbsp;monero-pool</a>
+            and based on libevent and lmdb.
+            Just nearly 10% of code is added/rewritten, because jtgrassie's&nbsp;monero-pool offers a robust base to develop MINEXMR2 pool as a proxy to decentralized p2pool.
+            MINEXMR2 is ultra-fast, fault-tolerant and can be up-scaled on many servers using haproxy requests scheduling.
+        </p><p>
+            You may start your own pool, with your additional services like miner statistics graphics, automatic payments on miner's demand, etc.
+            We can help you with configuration, deployment and fine-tuning. Let's empower decentralized p2pool much more together! Feel free to write email to minexmr2@tutanota.com.
+        </p>
+        <p>
+            If you found a bug or have a proposal, you can create a
+            <a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a>/
+            <a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a> issue.
+            <b>We plan to add miner's hashrate charts, payment history list and many other useful features</b>.
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
 
-<p>
-We have decided not to use social media like Twitter, Reddit, Facebook, TikTok, etc, to broadcast minexmr2.com online status and
-current technical works. Instead we use advanced approach based on GitHub, GitLab README.md files and issues.
-In a case of this service unavailable feel free to do one of the following:
-<ul>
-<li>Check either
-<b><a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a></b>
-or
-<b><a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a></b>
-project's README file for online status</li>
-<li>Write email to official support: <b>minexmr2@tutanota.com</b></li>
-<li>Create new
-<b><a href="https://github.com/minexmr2/minexmr2/issues" target="_blank">GitHub&nbsp;project's&nbsp;issue</a></b>
-or
-<b><a href="https://gitlab.com/minexmr/minexmr2/-/issues" target="_blank">GitLab&nbsp;project's&nbsp;issue</a></b>.</li>
-</ul>
-Whatever happens, don't worry about your pending XMR funds: pool is beyond pretty strong
-configured <a href="https://help.ubuntu.com/community/UFW" target="_blank">ufw</a> firewall
-and <a href="https://www.haproxy.org/" target="_blank">haproxy</a> shield.
-Also this pool has <b>upstream server, highly isolated counterpart that performs all the payment processing</b>.
-Your pending balance is being duplicated on both edge and upstream servers
-via an encrypted <a href="https://openvpn.net/" target="_blank">openvpn</a> tunnel.
-Of course, all the services' ports (where possible) are non-standard and secret.
-</p>
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 card">
+    <div class="episode__number">Useful Resources</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Some Monero-related 3rd party resources we found useful</header>
+        <p>
+            Other Monero mining pools based on p2pool inside:
+            <ul>
+            <li><a href="https://pool.aterx.com" target="_blank">pool.aterx.com</a>, typical hashrate 800KH/s, uses p2pool mini, payment threshold 0.005XMR, payouts every Sunday</li>
+            <li><a href="https://www.minerno.de" target="_blank">www.minerno.de</a>, typical hashrate 10KH/s, we can't evaluate other info.</li>
+            </ul>
+        </p>
+        <p>
+            Monero exchanges without <a href="https://en.wikipedia.org/wiki/Know_your_customer" target="_blank">KYC/AML</a>:
+            <ul>
+            <li><a href="https://kycnot.me" target="_blank">kycnot.me</a>, a most comprehensive one-love list of CEXes and DEXes that don't require KYC/AML.</li>
+            </ul>
+        </p>
+        <p>
+            Current Monero price averaged from all the exchanges:
+            <ul>
+            <li><a href="https://coinmarketcap.com/currencies/monero/" target="_blank">coinmarketcap.com</a>, a well known leader accumulating various info on cryptocurrencies.</li>
+            </ul>
+        </p>
+        <p>
+            Instant anonymous service that finds the best Monero price and performs the exchange process automatically:
+            <ul>
+            <li><a href="https://trocador.app/?ref=LzaQuZ7Fy0" target="_blank">trocador.app</a>, a modern way to exchange your crypto at best price;
+            their site even doesn't use Javascript.</li>
+            </ul>
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
 
-<p>
-This pool is intended for those people who do respect the privacy and care about their personal data.
-One can consider this pool as intermediate step to most sophisticated decentralized
-<a href="https://github.com/SChernykh/p2pool" target="_blank">p2pool</a>
-or a quick robust solution where he can't spend precious time to install, deploy
-and maintain his own p2pool instance (actually, it partially uses p2pool inside).
-<b>MINEXMR2 is a pretty good alternative to both MINEXMR and p2pool</b>.
-</p>
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+<div class="container_margin_donate"></div>
+</div>
+</div>
 
-<p class="important">
-Support email for manual payouts: <b>minexmr2@tutanota.com</b>.
-</p>
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 episode1_no_shadow card">
+    <div class="episode__number">Please Donate!</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>You donations help to evacuate my family from danger near-war zone of Ukraine</header>
+        <p>
+            If you find MINEXMR2 as a good project to support decentralized p2pool hashrate,
+            please donate XMR or BTC to further development.
+            Our goal is to bring all the p2pool decentralized capabilities to every miner,
+            without time/resource costs to deploy, upgrade, maintain the p2pool instance by himself.
+        </p>
+        <p>
+            Also you donations do help to evacuate my family from danger near-war zone of Ukraine.
+            Note, pool operators are located in safe destination far outside Ukraine. Pool servers are currently located in Arizona,&nbsp;US.
+            <b>There are no war threats against MINEXMR2 stable work</b>.
+        </p><p style="word-break: break-all;">
+            Donate XMR: <b>4AoKL73JHbJWSws7exQyxMYwgEvqkrpxX6hiLwLA8YXyESLHVCk7r9djR8fmeaDMSABCryvu1PjUGDYmQnkBNHum9NhDpbW</b>
+            <br/><br/>Donate BTC: <b>bc1qmg0jc8lnsqx82096cknfn9a8q6e723gm3kw23t</b>
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
 
-<p class="important3 stickup2"><small>Pool and site implementation of minexmr2.com is open&nbsp;source and mirrored on both
-<a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a>,
-<a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a>. It is built against Monero
-<a href="https://github.com/monero-project/monero/releases/tag/v0.18.1.0" target="_blank">Fluorine&nbsp;Fermi,
-Major Point Release&nbsp;1&nbsp;v0.18.1.0</a>.
-</small></p>
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+<div class="container_margin_footnote"></div>
+</div>
+</div>
+
+<div class="container episode1_top_shadow" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 footnote fullwidth borderzero important2 card">
+    <div class="episode__content">
+      <div class="story">
+        <p>
+        MINEXMR2 pool is ready to Monero upcoming network upgrade (fork) near
+        <a href="https://xmr.noctism.com" target="_blank">Aug&nbsp;12&nbsp;2022</a>.
+        Note: mining software will not be affected.
+        <b>Update: hard-fork has been done successfully</b>.
+        </p>
+      </div>
+    </div>
+  </article>
+  <article class="episode1 footnote fullwidth borderzero important3 card">
+    <div class="episode__content">
+      <div class="story">
+        <p>Pool and site implementation of minexmr2.com is open&nbsp;source and mirrored on both
+        <a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a>,
+        <a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a>. It is built against Monero
+        <a href="https://github.com/monero-project/monero/releases/tag/v0.18.1.2" target="_blank">Fluorine Fermi, Point Release&nbsp;1.2</a> and custom-patched
+        <a href="https://github.com/SChernykh/p2pool/releases/tag/v2.4" target="_blank">p2pool&nbsp;v2.4</a>.
+        </p>
+      </div>
+    </div>
+  </article>
+  <article class="episode1 footnote fullwidth borderzero important card">
+    <div class="episode__content">
+      <div class="story">
+        <p>
+        Support email if something goes wrong (especially with automatic payouts): <b>minexmr2@tutanota.com</b>.
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
 
 <script>
+// On toggler clicked
+
+document.getElementById('toggler').addEventListener('change', (event) => {
+  //console.log(toggler)
+  var containers = document.getElementsByClassName('container');
+  for (var i = 0; i < containers.length; ++i) {
+    var container = containers[i];
+    container.removeAttribute('data-theme');
+    event.target.checked ? container.setAttribute('data-theme', 'default') : container.setAttribute('data-theme', 'dark');
+  }
+  var slider2 = document.getElementsByClassName('slider2')[0];
+  slider2.innerHTML = event.target.checked ? "DAY" : "NIGHT";
+});
+
     function format_last_time(last)
     {
         var now = new Date().getTime() / 1000;
@@ -455,7 +983,7 @@ Major Point Release&nbsp;1&nbsp;v0.18.1.0</a>.
                     (stats[e] == 0 ? "none;" : "table-row;");
                 el.innerHTML = stats[e];
             }
-            else if (e == "payment_threshold")
+            else if ((e == "payment_threshold") || (e == "miner_balance"))
             {
                 el.innerHTML = stats[e] + " XMR";
             }

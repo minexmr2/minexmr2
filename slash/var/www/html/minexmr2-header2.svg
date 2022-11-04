@@ -9,9 +9,9 @@
         transform="translate(0,-287.73958)">
     <path
         d="M 2.1598652,297 8.6394566,287.92857 15.119048,297 Z"
-        style="fill:#444444;stroke:none;" />
+        style="fill:#555555;stroke:none;" />
     <path
         d="M 0,297 4.319727,290.95239 8.6394566,297 Z"
-        style="fill:#ff6633;stroke:none;" />
+        style="fill:#cc0066;stroke:none;" />
     </g>
 </svg>
