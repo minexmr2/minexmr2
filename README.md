@@ -17,6 +17,8 @@ Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
 
+⚡ Nov 06 2022: [minexmr2.com](https://minexmr2.com) site obtains NIGHT/DAY theme switch, 1st GitHub feature request has been implemented.
+
 ⚡ Nov 01 2022: [minexmr2.com](https://minexmr2.com) site has new section: Useful Resources
 (Some Monero-related 3rd party resources we found useful).
 
