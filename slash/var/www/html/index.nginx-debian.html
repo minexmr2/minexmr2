@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="icon" href="minexmr2-header2.svg" type="image/svg+xml"/>
+<link rel="icon" href="minexmr2-header3.svg" type="image/svg+xml"/>
 
 <title>MINEXMR2: hashrate from decentralized p2pool</title>
 <!-- Begin formerly Jekyll SEO tag v2.6.1 -->
@@ -26,7 +26,7 @@
 <meta property="twitter:title" content="MINEXMR2: hashrate from decentralized p2pool" />
 <meta property="twitter:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider" />
 <script type="application/ld+json">
-{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/minexmr2-header2.svg"}},"headline":"MINEXMR2: hashrate from decentralized p2pool","url":"https://minexmr2.com/","description":"First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider","name":"MINEXMR2: hashrate from decentralized p2pool","@context":"https://schema.org"}
+{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/minexmr2-header3.svg"}},"headline":"MINEXMR2: hashrate from decentralized p2pool","url":"https://minexmr2.com/","description":"First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider","name":"MINEXMR2: hashrate from decentralized p2pool","@context":"https://schema.org"}
 </script>
 
 <style>
@@ -161,6 +161,7 @@ table.stats th {
 table.stats td {
     text-align: left;
     font-weight: bold;
+    color: var(--text-param-color);
 }
 
 a:link {
@@ -319,9 +320,11 @@ margin-top: 0px;
 [data-theme="default"] {
   --body-bg-color: #ccc;
   --card-bg-color: #eee;
+  --card-fn-bg-color: #ddf;
   --border-color: #888;
   --text-color: #333;
-  --switch-on-color: #444352;
+  --text-param-color: #44a;
+  --switch-on-color: #888;
   --switch-off-color: #ccc;
   --toggler-color: #fff;
   --link-color: #369;
@@ -332,11 +335,13 @@ margin-top: 0px;
 [data-theme="dark"] {
   --body-bg-color: #444;
   --card-bg-color: #555;
+  --card-fn-bg-color: #446;
   --border-color: #999;
   --text-color: #fff;
-  --toggler-color: #444352;
+  --text-param-color: #aaf;
+  --toggler-color: #ccc;
   --switch-on-color: #fff;
-  --switch-off-color: #ccc;
+  --switch-off-color: #444;
   --link-color: #39c;
   --link-color-hover: #3cf;
   --slider2-color: #ccc;
@@ -369,7 +374,13 @@ margin-top: 0px;
   background-color: var(--card-bg-color);
   transition: color .45s ease-in,
               background-color .45s ease-in;
+}
 
+.card_footnote {
+  color: var(--text-color);
+  background-color: var(--card-fn-bg-color);
+  transition: color .45s ease-in,
+              background-color .45s ease-in;
 }
 
 /* The switch - the box around the slider */
@@ -593,7 +604,7 @@ margin-top: 28px;
 </h1>
 
 <div style="margin-top: 20px; margin-bottom: 20px;">
-<h2 class="font_menu special"><img src="minexmr2-header2.svg" class="inline_header2" alt="MINEXMR2 Monero mining pool header icon 2"/><span>MINEXMR2</span></h2>
+<h2 class="font_menu special"><img src="minexmr2-header3.svg" class="inline_header2" alt="MINEXMR2 Monero mining pool header icon 2"/><span>MINEXMR2</span></h2>
 <h3 class="font_menu special">First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider</h3>
 <h4 class="font_menu special">Established 2022-09-15 UTC&nbsp;10:00</h4>
 <h5 class="font_menu special">The name MINEXMR2 is inspired by departed old-school MINEXMR pool and conceptual decentralized p2pool. In no way this pool is related to original MINEXMR</h5>
@@ -837,7 +848,7 @@ margin-top: 28px;
 
 <div class="container episode1_top_shadow" data-theme="dark">
 <div class="inner_wrapper">
-  <article class="episode1 footnote fullwidth borderzero important2 card">
+  <article class="episode1 footnote fullwidth borderzero important2 card_footnote">
     <div class="episode__content">
       <div class="story">
         <p>
@@ -849,7 +860,7 @@ margin-top: 28px;
       </div>
     </div>
   </article>
-  <article class="episode1 footnote fullwidth borderzero important3 card">
+  <article class="episode1 footnote fullwidth borderzero important3 card_footnote">
     <div class="episode__content">
       <div class="story">
         <p>Pool and site implementation of minexmr2.com is open&nbsp;source and mirrored on both
@@ -861,7 +872,7 @@ margin-top: 28px;
       </div>
     </div>
   </article>
-  <article class="episode1 footnote fullwidth borderzero important card">
+  <article class="episode1 footnote fullwidth borderzero important card_footnote">
     <div class="episode__content">
       <div class="story">
         <p>
