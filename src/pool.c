@@ -152,14 +152,14 @@ enum msgbin_type  { BIN_PING, BIN_CONNECT, BIN_DISCONNECT, BIN_SHARE,
                     BIN_BLOCK, BIN_STATS, BIN_BALANCE };
 const unsigned char msgbin[] = {0x4D,0x4E,0x52,0x4F,0x50,0x4F,0x4F,0x4C};
 
-/* 2m, 10m, 30m, 1h, 1d, 1w */
-const unsigned hr_intervals[] = {120,600,1800,3600,86400,604800};
+/* 4m, 10m, 30m, 1h, 1d, 1w */
+const unsigned hr_intervals[] = {240,600,1800,3600,86400,604800};
 
 typedef struct hr_stats_t
 {
     time_t last_calc;
     uint64_t diff_since;
-    /* 2m, 10m, 30m, 1h, 1d, 1w */
+    /* 4m, 10m, 30m, 1h, 1d, 1w */
     double avg[6];
 } hr_stats_t;
 
@@ -3342,6 +3342,7 @@ trusted_on_client_share(client_t *client)
     pool_stats.round_hashes += s.difficulty;
     client->hr_stats.diff_since += s.difficulty;
     hr_update(&client->hr_stats);
+
     rc = store_share(s.height, &s);
     if (rc != 0)
         log_warn("Failed to store share: %s", mdb_strerror(rc));
@@ -3690,7 +3691,36 @@ static void p2pool_accept_job(client_t *client, int req_id_val)
                 share.timestamp = client->p2pool_jobs[x].reqs[y].when_submitted;
 
                 if (!upstream_event)
-                    pool_stats.round_hashes += share.difficulty;
+                {
+                    share_t s = share;
+                    account_t *account = NULL;
+                    pthread_rwlock_rdlock(&rwlock_acc);
+                    HASH_FIND_STR(accounts, s.address, account);
+                    pthread_rwlock_unlock(&rwlock_acc);
+                    if (!account)
+                    {
+                        log_info("new address=%s", s.address);
+                        account = gbag_get(bag_accounts);
+                        strncpy(account->address, s.address, sizeof(account->address)-1);
+                        account->hr_stats.last_calc = 0;
+                        account->hr_stats.diff_since = s.difficulty;
+                        pthread_rwlock_wrlock(&rwlock_acc);
+                        const char* address = s.address;
+                        HASH_ADD_STR(accounts, address, account);
+                        pthread_rwlock_unlock(&rwlock_acc);
+                    }
+                    else
+                    {
+                        account->hr_stats.diff_since += s.difficulty;
+                    }
+                    hr_update(&account->hr_stats);
+
+                    client->hashes += s.difficulty;
+                    pool_stats.round_hashes += s.difficulty;
+                    client->hr_stats.diff_since += s.difficulty;
+                    hr_update(&client->hr_stats);
+                }
+
                 log_debug("Storing share with difficulty: %"PRIu64, share.difficulty);
                 int rc = store_share(share.height, &share);
                 if (rc != 0)
