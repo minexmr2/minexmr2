@@ -341,7 +341,7 @@ static struct event_base *pool_base;
 static struct event *listener_event;
 static struct event *timer_30s;
 static struct event *timer_120s;
-static struct event *timer_120s_trusted;
+static struct event *timer_240s_trusted;
 static struct event *timer_10m;
 static struct event *signal_usr1;
 static uint32_t extra_nonce;
@@ -4053,12 +4053,12 @@ timer_on_120s(int fd, short kind, void *ctx)
 }
 
 static void
-timer_on_120s_trusted(int fd, short kind, void *ctx)
+timer_on_240s_trusted(int fd, short kind, void *ctx)
 {
     log_info("Updating pool and miners' hashrates...");
     update_pool_hr();
-    struct timeval timeout = { .tv_sec = 120, .tv_usec = 0 };
-    evtimer_add(timer_120s_trusted, &timeout);
+    struct timeval timeout = { .tv_sec = 240, .tv_usec = 0 };
+    evtimer_add(timer_240s_trusted, &timeout);
 }
 
 static void
@@ -5920,8 +5920,8 @@ trusted_run(void *ctx)
         goto bail;
     }
 
-    timer_120s_trusted = evtimer_new(trusted_base, timer_on_120s_trusted, NULL);
-    timer_on_120s_trusted(-1, EV_TIMEOUT, NULL);
+    timer_240s_trusted = evtimer_new(trusted_base, timer_on_240s_trusted, NULL);
+    timer_on_240s_trusted(-1, EV_TIMEOUT, NULL);
 
     event_base_dispatch(trusted_base);
 
