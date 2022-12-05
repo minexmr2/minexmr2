@@ -17,6 +17,8 @@ Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
 
+⚡ Dec 05 2022: [minexmr2.com](https://minexmr2.com) switched to [p2pool v2.6](https://github.com/SChernykh/p2pool/releases/tag/v2.6).
+
 ⚡ Nov 06 2022: [minexmr2.com](https://minexmr2.com) site obtains NIGHT/DAY theme switch, 1st GitHub feature request has been implemented.
 
 ⚡ Nov 01 2022: [minexmr2.com](https://minexmr2.com) site has new section: Useful Resources
