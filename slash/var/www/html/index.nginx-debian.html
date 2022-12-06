@@ -8,25 +8,25 @@
 
 <link rel="icon" href="minexmr2-header3.svg" type="image/svg+xml"/>
 
-<title>MINEXMR2: hashrate from decentralized p2pool</title>
+<title>MINEXMR2: regular payouts from p2pool inside</title>
 <!-- Begin formerly Jekyll SEO tag v2.6.1 -->
 <meta name="generator" content="Jekyll v3.8.7" />
-<meta name="author" content="MINEXMR2: hashrate from decentralized p2pool" />
+<meta name="author" content="MINEXMR2: regular payouts from p2pool inside" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://minexmr2.com" />
-<meta property="og:title" content="MINEXMR2: hashrate from decentralized p2pool" />
+<meta property="og:title" content="MINEXMR2: regular payouts from p2pool inside" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider" />
-<meta property="og:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider" />
+<meta name="description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts" />
+<meta property="og:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts" />
 <link rel="canonical" href="https://minexmr2.com/" />
 <meta property="og:url" content="https://minexmr2.com/" />
-<meta property="og:site_name" content="MINEXMR2: hashrate from decentralized p2pool" />
+<meta property="og:site_name" content="MINEXMR2: regular payouts from p2pool inside" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:url" content="https://minexmr2.com" />
-<meta property="twitter:title" content="MINEXMR2: hashrate from decentralized p2pool" />
-<meta property="twitter:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider" />
+<meta property="twitter:title" content="MINEXMR2: regular payouts from p2pool inside" />
+<meta property="twitter:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts" />
 <script type="application/ld+json">
-{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/minexmr2-header3.svg"}},"headline":"MINEXMR2: hashrate from decentralized p2pool","url":"https://minexmr2.com/","description":"First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider","name":"MINEXMR2: hashrate from decentralized p2pool","@context":"https://schema.org"}
+{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/minexmr2-header3.svg"}},"headline":"MINEXMR2: regular payouts from p2pool inside","url":"https://minexmr2.com/","description":"First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts","name":"MINEXMR2: regular payouts from p2pool inside","@context":"https://schema.org"}
 </script>
 
 <style>
@@ -166,6 +166,11 @@ table.stats th {
 
 table.stats td {
     text-align: left;
+    font-weight: bold;
+    color: var(--text-param-color);
+}
+
+.stats_style {
     font-weight: bold;
     color: var(--text-param-color);
 }
@@ -544,7 +549,7 @@ img.inline_header {
 }
 
 .special {
-    padding-left: 25px; padding-right: 25px;
+    padding-left: 20px; padding-right: 20px;
 }
 
 .episode2 {
@@ -603,7 +608,7 @@ margin-top: 28px;
 <div class="inner_wrapper">
 
 
-<h1 class="menu font_menu"><img src="minexmr2-header.svg" class="inline_header" alt="MINEXMR2 Monero mining pool header icon"/><span>MINEXMR2: hashrate from decentralized p2pool</span>
+<h1 class="menu font_menu"><img src="minexmr2-header.svg" class="inline_header" alt="MINEXMR2 Monero mining pool header icon"/><span>MINEXMR2: regular payouts from p2pool inside</span>
       <label class="switch">
         <input id="toggler" type="checkbox"/>
         <span class="slider round"></span>
@@ -613,7 +618,7 @@ margin-top: 28px;
 
 <div style="margin-top: 20px; margin-bottom: 20px;">
 <h2 class="font_menu special"><img src="minexmr2-header3.svg" class="inline_header2" alt="MINEXMR2 Monero mining pool header icon 2"/><span>MINEXMR2</span></h2>
-<h3 class="font_menu special">First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider</h3>
+<h3 class="font_menu special">First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts<br/>(approx. <span class="stats_style" id="payout_freq">0 times/hour</span>)</h3>
 <h4 class="font_menu special">Established 2022-09-15 UTC&nbsp;10:00</h4>
 <h5 class="font_menu special">The name MINEXMR2 is inspired by departed old-school MINEXMR pool and conceptual decentralized p2pool. In no way this pool is related to original MINEXMR</h5>
 </div>
@@ -988,6 +993,8 @@ document.getElementById('toggler').addEventListener('change', (event) => {
     xhr.onload = function()
     {
         var stats = JSON.parse(xhr.responseText);
+        var nh = 1.0;
+        var p2ph = 0.0;
         for (var e in stats)
         {
             var el = document.querySelector("#"+e);
@@ -1022,7 +1029,14 @@ document.getElementById('toggler').addEventListener('change', (event) => {
             }
             else
                 el.innerHTML = stats[e];
+
+            if (/network_hashrate/.test(e))
+                nh = stats[e];
+            if (/p2pool_hashrate/.test(e))
+                p2phr = stats[e];
         }
+        var elPayoutFreq = document.querySelector("#"+"payout_freq");
+        elPayoutFreq.innerHTML = (30 * (p2phr / nh)).toFixed(1) + " times/hour";
     };
 
     wf.onblur = function(e)
