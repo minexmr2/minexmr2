@@ -1,4 +1,6 @@
-# Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider 👋
+# MINEXMR2: a Monero mining pool with regular payouts from p2pool inside, 100% pure open source
+
+## Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider for frequent payouts (approx. 2 times/hour) 👋
 
 This is [minexmr2.com](https://minexmr2.com) Monero mining pool implementation based
 on [jtgrassie's monero-pool](https://github.com/jtgrassie/monero-pool).
@@ -16,6 +18,8 @@ If you mine with us, you get your pending balance update as regular as p2pool fi
 Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
+
+⚡ Dec 08 2022: [minexmr2.com](https://minexmr2.com) server utilizes [cgroups](https://en.wikipedia.org/wiki/Cgroups) to limit [monerod CPU/RAM usage](https://monero.stackexchange.com/questions/1816/why-does-monerod-consume-so-much-cpu).
 
 ⚡ Dec 05 2022: [minexmr2.com](https://minexmr2.com) switched to [p2pool v2.6](https://github.com/SChernykh/p2pool/releases/tag/v2.6).
 
