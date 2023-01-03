@@ -324,6 +324,13 @@ typedef struct payment_t
     char address[ADDRESS_MAX];
 } payment_t;
 
+typedef struct hashrate_t
+{
+    uint64_t hashrate_value;
+    time_t hashrate_timestamp;
+    char hashrate_address[ADDRESS_MAX];
+} hashrate_t;
+
 typedef struct rpc_callback_t rpc_callback_t;
 typedef void (*rpc_callback_fun)(const char*, rpc_callback_t*);
 typedef void (*rpc_datafree_fun)(void*);
@@ -354,6 +361,7 @@ static MDB_dbi db_shares;
 static MDB_dbi db_blocks;
 static MDB_dbi db_balance;
 static MDB_dbi db_payments;
+static MDB_dbi db_hashrates;
 static MDB_dbi db_properties;
 static BN_CTX *bn_ctx;
 static BIGNUM *base_diff;
@@ -528,6 +536,14 @@ compare_payment(const MDB_val *a, const MDB_val *b)
 }
 
 static int
+compare_hashratets(const MDB_val *a, const MDB_val *b)
+{
+    const hashrate_t *va = (const hashrate_t*) a->mv_data;
+    const hashrate_t *vb = (const hashrate_t*) b->mv_data;
+    return (va->hashrate_timestamp < vb->hashrate_timestamp) ? -1 : 1;
+}
+
+static int
 database_resize(void)
 {
     const double threshold = 0.9;
@@ -636,6 +652,13 @@ database_init(const char* data_dir)
         log_fatal("%s", err);
         exit(rc);
     }
+    flags = MDB_CREATE | MDB_DUPSORT | MDB_DUPFIXED;
+    if ((rc = mdb_dbi_open(txn, "hashrates", flags, &db_hashrates)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_fatal("%s", err);
+        exit(rc);
+    }
     flags = MDB_CREATE;
     if ((rc = mdb_dbi_open(txn, "balance", flags, &db_balance)) != 0)
     {
@@ -665,6 +688,8 @@ database_init(const char* data_dir)
     mdb_set_dupsort(txn, db_blocks, compare_block);
     mdb_set_compare(txn, db_payments, compare_string);
     mdb_set_dupsort(txn, db_payments, compare_payment);
+    mdb_set_compare(txn, db_hashrates, compare_string);
+    mdb_set_dupsort(txn, db_hashrates, compare_hashratets);
     mdb_set_compare(txn, db_balance, compare_string);
 
     rc = mdb_txn_commit(txn);
@@ -679,6 +704,7 @@ database_close(void)
     mdb_dbi_close(env, db_blocks);
     mdb_dbi_close(env, db_balance);
     mdb_dbi_close(env, db_payments);
+    mdb_dbi_close(env, db_hashrates);
     mdb_dbi_close(env, db_properties);
     mdb_env_close(env);
 }
@@ -820,7 +846,7 @@ account_balance(const char *address)
     }
     if ((rc == MDB_NOTFOUND) && !(*config.trusted_listen))
     {
-        log_error("MDB_NOTFOUND address=%s", address);
+        log_warn("MDB_NOTFOUND address=%s", address);
         mdb_txn_abort(txn);
         pthread_rwlock_unlock(&rwlock_tx);
         return 0;
@@ -1154,6 +1180,61 @@ process_blocks(block_t *blocks, size_t count)
     return rc;
 }
 
+int hr_update_in_database(const char *addr, time_t ts, uint64_t hr)
+{
+    log_info("entry hr = %"PRIu64, hr);
+
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_cursor *cursor = NULL;
+
+    if ((rc = mdb_txn_begin(env, NULL, 0, &txn)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    if ((rc = mdb_cursor_open(txn, db_hashrates, &cursor)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    char addrbuf[ADDRESS_MAX];
+    memset(addrbuf, 0, ADDRESS_MAX);
+    strcpy(addrbuf, addr);
+
+    hashrate_t h;
+    memset(h.hashrate_address, 0, ADDRESS_MAX);
+    strcpy(h.hashrate_address, addr);
+    h.hashrate_timestamp = (uint64_t)ts;
+    h.hashrate_value = hr;
+
+    MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
+    MDB_val val = {sizeof(hashrate_t), (void*)&h};
+    if ((rc = mdb_cursor_put(cursor, &key, &val, 0)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("Error putting hashrate: %s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    if ((rc = mdb_txn_commit(txn)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("Error committing to db_hashrates: %s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    log_info("leave hr = %"PRIu64, hr);
+    return rc;
+}
+
 static void
 update_pool_hr(void)
 {
@@ -1169,7 +1250,13 @@ update_pool_hr(void)
     while ((a = gbag_next(bag_accounts, 0)))
     {
         if (!upstream_event)
+        {
             hr_update(&a->hr_stats);
+            double hrdbl[6] = {0};
+            account_hr(&hrdbl, a->address);
+            //log_info("hrdbl[0] = %10.1f, a->address = %s", hrdbl[0], a->address);
+            hr_update_in_database(a->address, a->hr_stats.last_calc, (uint64_t)hrdbl[0]);
+        }
     }
     log_info("Pool hashrate: %"PRIu64, hr);
     log_info("Pool hashrate accumulating downstreams: %d", (*config.trusted_listen) && (config.trusted_port));
@@ -2292,16 +2379,17 @@ p2pool_reward_balances_by_shares(int64_t *pbalance_prev, int64_t unlocked_balanc
         }
     }
 
-    rc = mdb_txn_commit(txn);
-    if (rc != 0)
-    {
-        err = mdb_strerror(rc);
-        log_error("%s", err);
-        mdb_txn_abort(txn);
-        return rc;
-    }
+    mdb_cursor_close(cursor);
+    mdb_txn_abort(txn);
 
     log_debug("total_difficulty=%"PRIu64"", total_difficulty);
+    if (total_difficulty == 0)
+    {
+        log_info("Nothing to update yet, total_difficulty == 0, total_reward=%"PRIi64", total_reward_minus_fee=%"PRIi64"", total_reward, total_reward_minus_fee);
+        log_info("But new height %"PRIu64" > height_prev %"PRIu64", why not try to send pending payments if above payment threshold...", height, height_prev);
+        *tosendpayments = true;
+        return P2POOL_REWARD_NOTHING_TODO;
+    }
 
     acc = (account_t*)gbag_first(bag_accounts);
     while ((acc = gbag_next(bag_accounts, 0)) != NULL)
@@ -2856,6 +2944,176 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
     log_info("Payout transfer successful: updating database... OK");
     json_object_put(root);
 }
+
+int get_last_payout(const char *address, uint64_t *amnt, uint64_t *ts)
+{
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_cursor *cursor = NULL;
+
+    if ((rc = mdb_txn_begin(env, NULL, MDB_RDONLY, &txn)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    if ((rc = mdb_cursor_open(txn, db_payments, &cursor)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    MDB_val key = {ADDRESS_MAX, (void*)address};
+    MDB_val val;
+
+    rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
+    if ((rc != 0) && (rc != MDB_NOTFOUND))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_cursor_close(cursor);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    if (rc == 0)
+    {
+        rc = mdb_cursor_get(cursor, &key, &val, MDB_LAST_DUP);
+        if ((rc != 0) && (rc != MDB_NOTFOUND))
+        {
+            err = mdb_strerror(rc);
+            log_error("%s", err);
+            mdb_cursor_close(cursor);
+            mdb_txn_abort(txn);
+            return rc;
+        }
+        if (rc == 0)
+        {
+            payment_t *p = (payment_t *)val.mv_data;
+            if (strcmp(p->address, address) != 0)
+            {
+                log_error("p->address=%s, while address=%s", p->address, address);
+                mdb_cursor_close(cursor);
+                mdb_txn_abort(txn);
+                return -12345;
+            }
+
+            *amnt = p->amount;
+            *ts = p->timestamp;
+        }
+    }
+
+    if ((rc != 0) && (rc != MDB_NOTFOUND))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+    }
+    mdb_cursor_close(cursor);
+    mdb_txn_abort(txn);
+    return rc;
+}
+
+int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstddev)
+{
+    log_info("entry");
+
+    int rc = 0;
+    char *err = NULL;
+    MDB_txn *txn = NULL;
+    MDB_cursor *cursor = NULL;
+
+    if ((rc = mdb_txn_begin(env, NULL, MDB_RDONLY, &txn)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        return rc;
+    }
+    if ((rc = mdb_cursor_open(txn, db_hashrates, &cursor)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    MDB_val key = {ADDRESS_MAX, (void*)address};
+    MDB_val val;
+
+    rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
+    if ((rc != 0) && (rc != MDB_NOTFOUND))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    if (rc == 0)
+    {
+        rc = mdb_cursor_get(cursor, &key, &val, MDB_LAST_DUP);
+        if (rc != 0)
+        {
+            err = mdb_strerror(rc);
+            log_error("%s", err);
+            mdb_txn_abort(txn);
+            return rc;
+        }
+
+        hashrate_t h;
+        memcpy(&h, val.mv_data, sizeof(hashrate_t)); // = (hashrate_t *)val.mv_data;
+        if (strcmp(h.hashrate_address, address) != 0)
+        {
+            log_error("h.hashrate_address=%s, while address=%s", h.hashrate_address, address);
+            mdb_txn_abort(txn);
+            return -12345;
+        }
+
+        double hravgsum = h.hashrate_value;
+        uint64_t hrtslatest = h.hashrate_timestamp;
+        uint64_t hrcount = 1;
+
+        hashrate_t h1;
+        while ((rc = mdb_cursor_get(cursor, &key, &val, MDB_PREV_DUP)) == 0)
+        {
+            memcpy(&h1, val.mv_data, sizeof(hashrate_t));
+            if ((hrtslatest - h1.hashrate_timestamp) > (24 * 3600 * 1000))
+                break;
+
+            if ((h.hashrate_timestamp - h1.hashrate_timestamp) > ((240+240)*1000))
+            {
+                // accumulate zero values
+                hravgsum += 0.0; // there was no hashrate
+                hrcount += ((h.hashrate_timestamp - h1.hashrate_timestamp - 240*1000) / (240*1000));
+            }
+
+            hravgsum += h1.hashrate_value;
+            hrcount += 1;
+
+            memcpy(&h, &h1, sizeof(hashrate_t));
+        }
+
+        if ((rc != 0) && (rc != MDB_NOTFOUND))
+        {
+            err = mdb_strerror(rc);
+            log_error("%s", err);
+            mdb_txn_abort(txn);
+            return rc;
+        }
+
+        hravgsum /= hrcount;
+        *hrmean = (uint64_t) hravgsum;
+        log_info("success *hrmean = %"PRIu64, *hrmean);
+        mdb_txn_abort(txn);
+        return 0;
+    }
+
+    mdb_txn_abort(txn);
+    return rc;
+}
+
 #ifdef P2POOL
 static int64_t safe_balance = 0;
 #endif
@@ -3711,6 +3969,7 @@ static void p2pool_accept_job(client_t *client, int req_id_val)
                     }
                     else
                     {
+                        //log_info("old address=%s", s.address);
                         account->hr_stats.diff_since += s.difficulty;
                     }
                     hr_update(&account->hr_stats);
@@ -4091,41 +4350,58 @@ timer_on_240s_trusted(int fd, short kind, void *ctx)
     evtimer_add(timer_240s_trusted, &timeout);
 }
 
-static void
-timer_on_10m(int fd, short kind, void *ctx)
+typedef int (*CMP_FUNC)(void *, void *);
+
+int cmp_func_shares(void *p1, void *p2)
 {
-    struct timeval timeout = { .tv_sec = 600, .tv_usec = 0 };
+    share_t *ps1 = (share_t *)p1;
+    share_t *ps2 = (share_t *)p2;
+
+    if (ps1->timestamp < ps2->timestamp)
+        return -1;
+    if (ps1->timestamp > ps2->timestamp)
+        return +1;
+    return 0;
+}
+
+int cmp_func_hashrates(void *p1, void *p2)
+{
+    hashrate_t *ph1 = (hashrate_t *)p1;
+    hashrate_t *ph2 = (hashrate_t *)p2;
+
+    if (ph1->hashrate_timestamp < ph2->hashrate_timestamp)
+        return -1;
+    if (ph1->hashrate_timestamp > ph2->hashrate_timestamp)
+        return +1;
+    return 0;
+}
+
+static void cull_database_by_cmp_func(MDB_dbi *db_ptr, const char *str_db_name, CMP_FUNC cmp_ptr, void *pCutValue)
+{
     time_t now = time(NULL);
     int rc = 0;
     uint64_t cc = 0;
-    time_t cut = now - config.cull_shares * 86400;
     MDB_txn *txn = NULL;
     MDB_cursor *cursor = NULL;
     MDB_cursor_op op = MDB_FIRST;
     MDB_val k, v;
 
-    if (database_resize())
-        log_warn("DB resize needed, will retry later");
-#ifndef P2POOL
-    send_payments();
-#endif
     /* culling old shares */
     if (config.cull_shares < 1)
         goto done;
-    log_debug("Culling shares older than: %d days", config.cull_shares);
+    log_info("Culling %s older than: %d days", str_db_name, config.cull_shares);
     if ((rc = mdb_txn_begin(env, NULL, 0, &txn)) != 0)
     {
         log_error("%s", mdb_strerror(rc));
         goto done;
     }
-    if ((rc = mdb_cursor_open(txn, db_shares, &cursor)) != 0)
+    if ((rc = mdb_cursor_open(txn, *db_ptr, &cursor)) != 0)
     {
         log_error("%s", mdb_strerror(rc));
         goto abort;
     }
     while (1)
     {
-        time_t st;
         if ((rc = mdb_cursor_get(cursor, &k, &v, op)))
         {
             if (rc != MDB_NOTFOUND)
@@ -4135,8 +4411,9 @@ timer_on_10m(int fd, short kind, void *ctx)
             }
             break;
         }
-        st = ((share_t*)v.mv_data)->timestamp;
-        if (st < cut)
+        //st = ((share_t*)v.mv_data)->timestamp;
+        int cmp_res = cmp_ptr(v.mv_data, pCutValue);
+        if (cmp_res < 0)
         {
             if ((rc = mdb_cursor_del(cursor, 0)))
             {
@@ -4154,7 +4431,7 @@ timer_on_10m(int fd, short kind, void *ctx)
     if ((rc = mdb_txn_commit(txn)))
         log_error("%s", mdb_strerror(rc));
     else
-        log_debug("Culled shares: %"PRIu64, cc);
+        log_info("Culled %s: %"PRIu64, str_db_name, cc);
     goto done;
 
 abort:
@@ -4162,6 +4439,31 @@ abort:
         mdb_cursor_close(cursor);
     mdb_txn_abort(txn);
 done:
+    return;
+}
+
+static void
+timer_on_10m(int fd, short kind, void *ctx)
+{
+    struct timeval timeout = { .tv_sec = 600, .tv_usec = 0 };
+    time_t now = time(NULL);
+    time_t cut = now - config.cull_shares * 86400;
+
+#ifndef P2POOL
+    send_payments();
+#endif
+
+    if (database_resize())
+        log_warn("DB resize needed, will retry later");
+
+    share_t scut;
+    scut.timestamp = cut;
+    cull_database_by_cmp_func(&db_shares, "db_shares", cmp_func_shares, &scut);
+
+    hashrate_t hcut;
+    hcut.hashrate_timestamp = (uint64_t)cut;
+    cull_database_by_cmp_func(&db_hashrates, "db_hashrates", cmp_func_hashrates, &hcut);
+
     evtimer_add(timer_10m, &timeout);
 }
 

@@ -199,6 +199,9 @@ send_json_stats(struct evhttp_request *req, void *arg)
     double mb = 0.0;
     uint64_t wc = 0;
     const char *wa = fetch_wa_cookie(req);
+    double mlpval = 0.0;
+    uint64_t mlpts = 0;
+    uint64_t mhrmean24h = 0;
 
     if (wa)
     {
@@ -206,6 +209,14 @@ send_json_stats(struct evhttp_request *req, void *arg)
         wc = worker_count(wa);
         uint64_t balance = account_balance(wa);
         mb = (double) balance / 1000000000000.0;
+        uint64_t payamount = 0;
+        int rc = get_last_payout(wa, &payamount, &mlpts);
+        if (rc == 0)
+            mlpval = (double) payamount / 1000000000000.0;
+        uint64_t hrtmp = 0;
+        rc = get_24h_meanstddev_hr(wa, &hrtmp, NULL);
+        if (rc == 0)
+            mhrmean24h = hrtmp;
     }
 
     evbuffer_add_printf(buf, "{"
@@ -232,8 +243,12 @@ send_json_stats(struct evhttp_request *req, void *arg)
                     "%"PRIu64",%"PRIu64",%"PRIu64","
                     "%"PRIu64",%"PRIu64",%"PRIu64"],"
             "\"miner_balance\":%.8f,"
+            "\"miner_last_payout\":%.8f,"
+            "\"miner_last_payout_ts\":%"PRIu64","
+            "\"miner_hashrate_mean24h\":%"PRIu64","
             "\"worker_count\": %"PRIu64
-            "}", ph,
+            "}",
+            ph,
 #ifdef P2POOL
             p2h,
 #endif
@@ -243,7 +258,7 @@ send_json_stats(struct evhttp_request *req, void *arg)
             ss, context->pool_stats->connected_accounts,
             (uint64_t)mh[0],
             (uint64_t)mh[0], (uint64_t)mh[1], (uint64_t)mh[2],
-            (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, wc);
+            (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, mlpval, mlpts, mhrmean24h, wc);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
     evhttp_send_reply(req, HTTP_OK, "OK", buf);

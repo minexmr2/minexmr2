@@ -645,7 +645,9 @@ margin-top: 28px;
             <tr style="display: none;"><th>Allow self-select:</th><td id="allow_self_select"></td></tr>
             <tr><th>Miners connected:</th><td id="connected_miners"></td></tr>
             <tr class="miner"><th>Your hashrate:</th><td id="miner_hashrate"></td></tr>
+            <tr class="miner"><th>Mean hashrate 24h:</th><td id="miner_hashrate_24h"></td></tr>
             <tr class="miner"><th>Pending balance:</th><td id="miner_balance"></td></tr>
+            <tr class="miner"><th>Last payout:</th><td id="miner_lp"></td></tr>
             <tr><th>Miner address:</th><td id="address" contenteditable="true"></td></tr>
         </table>
       </div>
@@ -993,8 +995,7 @@ document.getElementById('toggler').addEventListener('change', (event) => {
     xhr.onload = function()
     {
         var stats = JSON.parse(xhr.responseText);
-        var nh = 1.0;
-        var p2ph = 0.0;
+console.log(stats);
         for (var e in stats)
         {
             var el = document.querySelector("#"+e);
@@ -1029,14 +1030,24 @@ document.getElementById('toggler').addEventListener('change', (event) => {
             }
             else
                 el.innerHTML = stats[e];
-
-            if (/network_hashrate/.test(e))
-                nh = stats[e];
-            if (/p2pool_hashrate/.test(e))
-                p2phr = stats[e];
         }
+
+        var nh = stats["network_hashrate"];
+        var p2phr = stats["p2pool_hashrate"];
+
         var elPayoutFreq = document.querySelector("#"+"payout_freq");
         elPayoutFreq.innerHTML = (30 * (p2phr / nh)).toFixed(1) + " times/hour";
+
+        var mlpval = stats["miner_last_payout"];
+        var mlpts = stats["miner_last_payout_ts"];
+
+        var elMinerLastPayout = document.querySelector("#"+"miner_lp");
+        elMinerLastPayout.innerHTML = mlpval + " XMR @ " + format_last_time(mlpts);
+
+        var mhmean24h = stats["miner_hashrate_mean24h"];
+
+        var elMinerHRMean24h = document.querySelector("#"+"miner_hashrate_24h");
+        elMinerHRMean24h.innerHTML = format_hashrate(mhmean24h);
     };
 
     wf.onblur = function(e)

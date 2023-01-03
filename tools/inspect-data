@@ -47,6 +47,11 @@ class payment_t(Structure):
                 ('timestamp', c_longlong),
                 ('address', c_char*128)]
 
+class hashrate_t(Structure):
+    _fields_ = [('hashrate_value', c_longlong),
+                ('hashrate_timestamp', c_longlong),
+                ('hashrate_address', c_char*128)]
+
 class block_t(Structure):
     _fields_ = [('height', c_longlong),
                 ('hash', c_char*64),
@@ -95,10 +100,26 @@ def print_payements(path):
     with env.begin(db=payments) as txn:
         with txn.cursor() as curs:
             for key, value in curs:
-                address = format_address(address_from_key(key))
+                #address = format_address(address_from_key(key))
+                address = address_from_key(key)
                 p = payment_t.from_buffer_copy(value)
                 amount = format_amount(p.amount)
                 dt = format_timestamp(p.timestamp)
+                print('{}\t{}\t{}'.format(address, amount, dt))
+    env.close()
+
+def print_hashrates(path):
+    env = lmdb.open(path, readonly=True, max_dbs=1, create=False)
+    hashrates = env.open_db('hashrates'.encode())
+    with env.begin(db=hashrates) as txn:
+        with txn.cursor() as curs:
+            for key, value in curs:
+                #address = format_address(address_from_key(key))
+                address = address_from_key(key)
+                h = hashrate_t.from_buffer_copy(value)
+                #amount = format_amount(h.hashrate_value)
+                amount = h.hashrate_value
+                dt = format_timestamp(h.hashrate_timestamp)
                 print('{}\t{}\t{}'.format(address, amount, dt))
     env.close()
 
@@ -128,7 +149,8 @@ def print_shares(path):
                 key, value = curs.item()
                 height = c_longlong.from_buffer_copy(key).value
                 share = share_t.from_buffer_copy(value)
-                address = format_address(address_from_key(share.address))
+                #address = format_address(address_from_key(share.address))
+                address = address_from_key(key)
                 dt = format_timestamp(share.timestamp)
                 print('{}\t{}\t{}'.format(height, address, dt))
                 if not curs.prev():
@@ -142,6 +164,8 @@ def main():
             help='list miner balances')
     group.add_argument('-p', '--payments', action='store_true',
             help='list payments made')
+    group.add_argument('-r', '--hashrates', action='store_true',
+            help='list historical hashrates')
     group.add_argument('-m', '--mined', action='store_true',
             help='list mined blocks')
     group.add_argument('-s', '--shares', action='store_true',
@@ -152,6 +176,8 @@ def main():
         print_balance(args.database)
     elif args.payments:
         print_payements(args.database)
+    elif args.hashrates:
+        print_hashrates(args.database)
     elif args.mined:
         print_mined(args.database)
     elif args.shares:

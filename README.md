@@ -19,6 +19,8 @@ Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
 
+⚡ Jan 03 2022: [minexmr2.com](https://minexmr2.com) server has implemented miner's hashrate recording for last N days. Pool web-ui shows miner's 24h-averaged hashrate and miner's last payout (amount @ time).
+
 ⚡ Dec 08 2022: [minexmr2.com](https://minexmr2.com) server utilizes [cgroups](https://en.wikipedia.org/wiki/Cgroups) to limit [monerod CPU/RAM usage](https://monero.stackexchange.com/questions/1816/why-does-monerod-consume-so-much-cpu).
 
 ⚡ Dec 05 2022: [minexmr2.com](https://minexmr2.com) switched to [p2pool v2.6](https://github.com/SChernykh/p2pool/releases/tag/v2.6).
