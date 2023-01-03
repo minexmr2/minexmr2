@@ -2,6 +2,8 @@
 
 ## Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider for frequent payouts (approx. 2 times/hour) 👋
 
+![minexmr2.com site screenshot](minexmr2_screenshot.jpg?raw=true)
+
 This is [minexmr2.com](https://minexmr2.com) Monero mining pool implementation based
 on [jtgrassie's monero-pool](https://github.com/jtgrassie/monero-pool).
 Just nearly 10% of code is added/rewritten, because jtgrassie's monero-pool offers a robust base to develop minexmr2.com pool
