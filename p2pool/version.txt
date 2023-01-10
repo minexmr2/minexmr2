@@ -1,0 +1,2 @@
+P2pool v2.7-jan-9 HEAD
+https://github.com/SChernykh/p2pool/commit/ccc5117172706c3edbb04152d9c694028b232625

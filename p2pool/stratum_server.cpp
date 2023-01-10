@@ -1,6 +1,6 @@
 /*
  * This file is part of the Monero P2Pool <https://github.com/SChernykh/p2pool>
- * Copyright (c) 2021-2022 SChernykh <https://github.com/SChernykh>
+ * Copyright (c) 2021-2023 SChernykh <https://github.com/SChernykh>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 static constexpr char log_category_prefix[] = "StratumServer ";
 
 static constexpr int DEFAULT_BACKLOG = 128;
-static constexpr uint64_t DEFAULT_BAN_TIME = 60; //MX2
+static constexpr uint64_t DEFAULT_BAN_TIME = 6; //MX2
 static constexpr uint64_t MIN_DIFF = 10000; //MX2
 static constexpr uint64_t AUTO_DIFF_TARGET_TIME = 30;
 
@@ -54,6 +54,7 @@ StratumServer::StratumServer(p2pool* pool)
 	, m_hashrateDataTail_24h(0)
 	, m_cumulativeFoundSharesDiff(0.0)
 	, m_totalFoundShares(0)
+	, m_totalFailedShares(0)
 	, m_apiLastUpdateTime(0)
 {
 	// Diffuse the initial state in case it has low quality
@@ -420,14 +421,21 @@ bool StratumServer::on_submit(StratumClient* client, uint32_t id, const char* jo
 		share->m_hashes = (target > 1) ? udiv128(1, 0, target, &rem) : 1;
 		share->m_highEnoughDifficulty = sidechain_diff.check_pow(resultHash);
 
+		// Don't count shares that were found during sync
+		const SideChain& side_chain = m_pool->side_chain();
+		const PoolBlock* tip = side_chain.chainTip();
+		if (tip && (sidechain_height + side_chain.chain_window_size() < tip->m_sidechainHeight)) {
+			share->m_highEnoughDifficulty = false;
+		}
+
 		update_auto_diff(client, share->m_timestamp, share->m_hashes);
 
-		// If this share is below sidechain difficulty, process it in this thread because it'll be quick
-		if (!share->m_highEnoughDifficulty) {
-			on_share_found(&share->m_req);
-			on_after_share_found(&share->m_req, 0);
-			return true;
-		}
+		// If this share is below sidechain difficulty, process it in this thread because it'll be quick //MX2
+		//if (!share->m_highEnoughDifficulty) {
+		//	on_share_found(&share->m_req);
+		//	on_after_share_found(&share->m_req, 0);
+		//	return true;
+		//} //MX2
 
 		// Else switch to a worker thread to check PoW which can take a long time
 		const int err = uv_queue_work(&m_loop, &share->m_req, on_share_found, on_after_share_found);
@@ -513,10 +521,13 @@ void StratumServer::show_workers()
 
 void StratumServer::reset_share_counters()
 {
+	WriteLock lock(m_hashrateDataLock);
+
 	m_cumulativeHashes = 0;
 	m_cumulativeHashesAtLastShare = 0;
 	m_cumulativeFoundSharesDiff = 0.0;
 	m_totalFoundShares = 0;
+	m_totalFailedShares = 0;
 }
 
 void StratumServer::print_stratum_status() const
@@ -525,6 +536,8 @@ void StratumServer::print_stratum_status() const
 	int64_t dt_15m, dt_1h, dt_24h;
 
 	uint64_t hashes_since_last_share;
+	double average_effort;
+	uint32_t shares_found, shares_failed;
 
 	{
 		ReadLock lock(m_hashrateDataLock);
@@ -546,16 +559,25 @@ void StratumServer::print_stratum_status() const
 
 		hashes_24h = head.m_cumulativeHashes - tail_24h.m_cumulativeHashes;
 		dt_24h = static_cast<int64_t>(head.m_timestamp - tail_24h.m_timestamp);
+
+		average_effort = 0.0;
+		const double diff = m_cumulativeFoundSharesDiff;
+		if (diff > 0.0) {
+			average_effort = static_cast<double>(m_cumulativeHashesAtLastShare) * 100.0 / diff;
+		}
+
+		shares_found = m_totalFoundShares;
+		shares_failed = m_totalFailedShares;
 	}
 
 	const uint64_t hashrate_15m = (dt_15m > 0) ? (hashes_15m / dt_15m) : 0;
 	const uint64_t hashrate_1h  = (dt_1h  > 0) ? (hashes_1h  / dt_1h ) : 0;
 	const uint64_t hashrate_24h = (dt_24h > 0) ? (hashes_24h / dt_24h) : 0;
 
-	double average_effort = 0.0;
-	const double diff = m_cumulativeFoundSharesDiff;
-	if (diff > 0.0) {
-		average_effort = static_cast<double>(m_cumulativeHashesAtLastShare) * 100.0 / diff;
+	char shares_failed_buf[64] = {};
+	log::Stream s(shares_failed_buf);
+	if (shares_failed) {
+		s << log::Yellow() << "\nShares failed      = " << shares_failed << log::NoColor();
 	}
 
 	LOGINFO(0, "status" <<
@@ -563,7 +585,7 @@ void StratumServer::print_stratum_status() const
 		"\nHashrate (1h  est) = " << log::Hashrate(hashrate_1h) <<
 		"\nHashrate (24h est) = " << log::Hashrate(hashrate_24h) <<
 		"\nTotal hashes       = " << total_hashes <<
-		"\nShares found       = " << m_totalFoundShares <<
+		"\nShares found       = " << shares_found << shares_failed_buf <<
 		"\nAverage effort     = " << average_effort << '%' <<
 		"\nCurrent effort     = " << static_cast<double>(hashes_since_last_share) * 100.0 / m_pool->side_chain().difficulty().to_double() << '%' <<
 		"\nConnections        = " << m_numConnections.load() << " (" << m_numIncomingConnections.load() << " incoming)"
@@ -681,9 +703,9 @@ void StratumServer::on_blobs_ready()
 
 			if (!client->m_rpcId) {
 				// Not logged in yet, on_login() will send the job to this client. Also close inactive connections.
-				if (cur_time >= client->m_connectedTime + 1200) { //MX2
+				if (cur_time >= client->m_connectedTime + 1200) {//MX2
 					LOGWARN(4, "client " << static_cast<char*>(client->m_addrString) << " didn't send login data");
-					//client->ban(DEFAULT_BAN_TIME); //MX2
+					//client->ban(DEFAULT_BAN_TIME);//MX2
 					client->close();
 				}
 				continue;
@@ -821,7 +843,7 @@ void StratumServer::on_share_found(uv_work_t* req)
 		LOGWARN(0, "p2pool is shutting down, but a share was found. Trying to process it anyway!");
 	}
 
-	if (share->m_highEnoughDifficulty) {
+	if (true) { //MX2
 		uint8_t blob[128];
 		uint64_t height;
 		difficulty_type difficulty;
@@ -857,15 +879,26 @@ void StratumServer::on_share_found(uv_work_t* req)
 
 		client->m_score += GOOD_SHARE_POINTS;
 
-		const uint64_t n = server->m_cumulativeHashes + hashes;
 		const double diff = sidechain_difficulty.to_double();
-		share->m_effort = static_cast<double>(n - server->m_cumulativeHashesAtLastShare) * 100.0 / diff;
-		server->m_cumulativeHashesAtLastShare = n;
+		{
+			WriteLock lock(server->m_hashrateDataLock);
 
-		server->m_cumulativeFoundSharesDiff += diff;
-		++server->m_totalFoundShares;
+			const uint64_t n = server->m_cumulativeHashes + hashes;
+			share->m_effort = static_cast<double>(n - server->m_cumulativeHashesAtLastShare) * 100.0 / diff;
+			server->m_cumulativeHashesAtLastShare = n;
 
-		pool->submit_sidechain_block(share->m_templateId, share->m_nonce, share->m_extraNonce);
+			server->m_cumulativeFoundSharesDiff += diff;
+			++server->m_totalFoundShares;
+		}
+
+		if (share->m_highEnoughDifficulty) { if (!pool->submit_sidechain_block(share->m_templateId, share->m_nonce, share->m_extraNonce)) { //MX2
+			WriteLock lock(server->m_hashrateDataLock);
+
+			if (server->m_totalFoundShares > 0) {
+				--server->m_totalFoundShares;
+				++server->m_totalFailedShares;
+			}
+		} }
 	}
 
 	// Send the response to miner
@@ -927,7 +960,7 @@ void StratumServer::on_after_share_found(uv_work_t* req, int /*status*/)
 			});
 
 		if (bad_share && (client->m_score <= BAN_THRESHOLD_POINTS)) {
-			//client->ban(DEFAULT_BAN_TIME); //MX2
+			//client->ban(DEFAULT_BAN_TIME);//MX2
 			client->close();
 		}
 		else if (!result) {
@@ -935,8 +968,8 @@ void StratumServer::on_after_share_found(uv_work_t* req, int /*status*/)
 		}
 	}
 	else if (bad_share) {
-		//server->ban(share->m_clientAddr, DEFAULT_BAN_TIME); //MX2
-		client->close(); //MX2
+		//server->ban(share->m_clientAddr, DEFAULT_BAN_TIME);
+		client->close();//MX2
 	}
 }
 
@@ -990,8 +1023,8 @@ bool StratumServer::StratumClient::on_read(char* data, uint32_t size)
 {
 	if ((data != m_readBuf + m_numRead) || (data + size > m_readBuf + sizeof(m_readBuf))) {
 		LOGERR(1, "client: invalid data pointer or size in on_read()");
-		//ban(DEFAULT_BAN_TIME); //MX2
-		close(); //MX2
+		//ban(DEFAULT_BAN_TIME);//MX2
+		close();//MX2
 		return false;
 	}
 
@@ -1002,8 +1035,8 @@ bool StratumServer::StratumClient::on_read(char* data, uint32_t size)
 		if (*c == '\n') {
 			*c = '\0';
 			if (!process_request(line_start, static_cast<uint32_t>(c - line_start))) {
-				//ban(DEFAULT_BAN_TIME); //MX2
-				close(); //MX2
+				//ban(DEFAULT_BAN_TIME);//MX2
+				close();//MX2
 				return false;
 			}
 			line_start = c + 1;
@@ -1188,6 +1221,8 @@ void StratumServer::api_update_local_stats(uint64_t timestamp)
 	int64_t dt_15m, dt_1h, dt_24h;
 
 	uint64_t hashes_since_last_share;
+	double average_effort;
+	uint32_t shares_found, shares_failed;
 
 	{
 		ReadLock lock(m_hashrateDataLock);
@@ -1209,19 +1244,20 @@ void StratumServer::api_update_local_stats(uint64_t timestamp)
 
 		hashes_24h = head.m_cumulativeHashes - tail_24h.m_cumulativeHashes;
 		dt_24h = static_cast<int64_t>(head.m_timestamp - tail_24h.m_timestamp);
+
+		average_effort = 0.0;
+		const double diff = m_cumulativeFoundSharesDiff;
+		if (diff > 0.0) {
+			average_effort = static_cast<double>(m_cumulativeHashesAtLastShare) * 100.0 / diff;
+		}
+
+		shares_found = m_totalFoundShares;
+		shares_failed = m_totalFailedShares;
 	}
 
 	const uint64_t hashrate_15m = (dt_15m > 0) ? (hashes_15m / dt_15m) : 0;
 	const uint64_t hashrate_1h  = (dt_1h  > 0) ? (hashes_1h  / dt_1h ) : 0;
 	const uint64_t hashrate_24h = (dt_24h > 0) ? (hashes_24h / dt_24h) : 0;
-
-	double average_effort = 0.0;
-	const double diff = m_cumulativeFoundSharesDiff;
-	if (diff > 0.0) {
-		average_effort = static_cast<double>(m_cumulativeHashesAtLastShare) * 100.0 / diff;
-	}
-
-	int shares_found = m_totalFoundShares;
 
 	double current_effort = static_cast<double>(hashes_since_last_share) * 100.0 / m_pool->side_chain().difficulty().to_double();
 
@@ -1229,13 +1265,14 @@ void StratumServer::api_update_local_stats(uint64_t timestamp)
 	int incoming_connections = m_numIncomingConnections;
 
 	m_pool->api()->set(p2pool_api::Category::LOCAL, "stats",
-		[hashrate_15m, hashrate_1h, hashrate_24h, total_hashes, shares_found, average_effort, current_effort, connections, incoming_connections](log::Stream& s)
+		[hashrate_15m, hashrate_1h, hashrate_24h, total_hashes, shares_found, shares_failed, average_effort, current_effort, connections, incoming_connections](log::Stream& s)
 		{
 			s << "{\"hashrate_15m\":" << hashrate_15m
 				<< ",\"hashrate_1h\":" << hashrate_1h
 				<< ",\"hashrate_24h\":" << hashrate_24h
 				<< ",\"total_hashes\":" << total_hashes
 				<< ",\"shares_found\":" << shares_found
+				<< ",\"shares_failed\":" << shares_failed
 				<< ",\"average_effort\":" << average_effort
 				<< ",\"current_effort\":" << current_effort
 				<< ",\"connections\":" << connections

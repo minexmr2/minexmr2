@@ -150,9 +150,9 @@ def print_shares(path):
                 height = c_longlong.from_buffer_copy(key).value
                 share = share_t.from_buffer_copy(value)
                 #address = format_address(address_from_key(share.address))
-                address = address_from_key(key)
+                address = address_from_key(share.address)
                 dt = format_timestamp(share.timestamp)
-                print('{}\t{}\t{}'.format(height, address, dt))
+                print('{}\t{}\t{}\t{}'.format(height, address, dt, share.difficulty))
                 if not curs.prev():
                     break
     env.close()
