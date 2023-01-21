@@ -927,15 +927,15 @@ function formatDate(t) {
   var d = new Date(t*1000);
   return (
     [
-      d.getFullYear(),
-      padTo2Digits(d.getMonth() + 1),
-      padTo2Digits(d.getDate()),
+      d.getUTCFullYear(),
+      padTo2Digits(d.getUTCMonth() + 1),
+      padTo2Digits(d.getUTCDate()),
     ].join('-') +
     ' ' +
     [
-      padTo2Digits(d.getHours()),
-      padTo2Digits(d.getMinutes()),
-      padTo2Digits(d.getSeconds()),
+      padTo2Digits(d.getUTCHours()),
+      padTo2Digits(d.getUTCMinutes()),
+      padTo2Digits(d.getUTCSeconds()),
     ].join(':')
   );
 }
@@ -958,7 +958,7 @@ var layout = {
     showlegend: false,
     font: {size: 10, color: '#ddd'},
   xaxis: {
-    title: 'Time',
+    title: 'Time (UTC)',
     showgrid: true,
     gridcolor: '#555'
     },
