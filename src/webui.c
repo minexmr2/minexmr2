@@ -133,6 +133,7 @@ send_json_stats(struct evhttp_request *req, void *arg)
     uint64_t ph = context->pool_stats->pool_hashrate;
 #ifdef P2POOL
     uint64_t p2h = 0;
+    uint64_t p2h_hashrate_15m = 0;
 #endif
     uint64_t nh = context->pool_stats->network_hashrate;
     uint64_t nd = context->pool_stats->network_difficulty;
@@ -189,8 +190,33 @@ send_json_stats(struct evhttp_request *req, void *arg)
                     }
                 }
             }
+            json_object_put(root);
         }
         free(str_json_pool);
+        str_json_pool = NULL;
+    }
+
+    str_json_pool = load_file_as_c_string("/home/p2pool/stats/local/stats");
+    if (str_json_pool)
+    {
+        json_object *root = json_tokener_parse(str_json_pool);
+        if (root)
+        {
+
+            json_object *hashrate_15m = NULL;
+            json_object_object_get_ex(root, "hashrate_15m", &hashrate_15m);
+            if (hashrate_15m)
+            {
+                if (json_object_is_type(hashrate_15m, json_type_int))
+                {
+                    p2h_hashrate_15m = (uint64_t)json_object_get_int64(hashrate_15m);
+                }
+            }
+
+            json_object_put(root);
+        }
+        free(str_json_pool);
+        str_json_pool = NULL;
     }
 #endif
     uint64_t rh = context->pool_stats->round_hashes;
@@ -202,6 +228,18 @@ send_json_stats(struct evhttp_request *req, void *arg)
     double mlpval = 0.0;
     uint64_t mlpts = 0;
     uint64_t mhrmean24h = 0;
+    uint64_t chart_array_len = 0;
+    hashrate_chart_t *chart_array = NULL;
+    char miner_chart_buf_x_init[500000];
+    char miner_chart_buf_y_init[500000];
+    char *miner_chart_buf_x0 = miner_chart_buf_x_init;
+    char *miner_chart_buf_y0 = miner_chart_buf_y_init;
+    memset(miner_chart_buf_x0, 0, 500000);
+    memset(miner_chart_buf_y0, 0, 500000);
+    sprintf(miner_chart_buf_x0, "[]");
+    sprintf(miner_chart_buf_y0, "[]");
+    char *miner_chart_buf_x = miner_chart_buf_x_init;
+    char *miner_chart_buf_y = miner_chart_buf_y_init;
 
     if (wa)
     {
@@ -213,16 +251,77 @@ send_json_stats(struct evhttp_request *req, void *arg)
         int rc = get_last_payout(wa, &payamount, &mlpts);
         if (rc == 0)
             mlpval = (double) payamount / 1000000000000.0;
-        uint64_t hrtmp = 0;
-        rc = get_24h_meanstddev_hr(wa, &hrtmp, NULL);
-        if (rc == 0)
-            mhrmean24h = hrtmp;
-    }
 
+        uint64_t hrtmp = 0;
+        rc = get_24h_meanstddev_hr(wa, &hrtmp, NULL, &chart_array_len, &chart_array);
+        if ((rc == 0) && (chart_array_len > 0))
+        {
+            mhrmean24h = hrtmp;
+            int cx = sprintf(miner_chart_buf_x, "[");
+            int cy = sprintf(miner_chart_buf_y, "[");
+            if ((cx <= 0) || (cy <=0))
+            {
+                memset(miner_chart_buf_x0, 0, 500000);
+                memset(miner_chart_buf_y0, 0, 500000);
+                sprintf(miner_chart_buf_x0, "[]");
+                sprintf(miner_chart_buf_y0, "[]");
+                goto JSON_PRINT;
+            }
+            miner_chart_buf_x += cx;
+            miner_chart_buf_y += cy;
+            for(uint64_t i = 0; i < chart_array_len; ++i)
+            {
+                cx = sprintf(miner_chart_buf_x, "%"PRIu64, chart_array[chart_array_len - i - 1].hashrate_timestamp);
+                cy = sprintf(miner_chart_buf_y, "%"PRIu64, chart_array[chart_array_len - i - 1].hashrate_value);
+                if ((cx <= 0) || (cy <=0))
+                {
+                    memset(miner_chart_buf_x0, 0, 500000);
+                    memset(miner_chart_buf_y0, 0, 500000);
+                    sprintf(miner_chart_buf_x0, "[]");
+                    sprintf(miner_chart_buf_y0, "[]");
+                    goto JSON_PRINT;
+                }
+                miner_chart_buf_x += cx;
+                miner_chart_buf_y += cy;
+                if (i != (chart_array_len - 1))
+                {
+                    cx = sprintf(miner_chart_buf_x, ",");
+                    cy = sprintf(miner_chart_buf_y, ",");
+                    if ((cx <= 0) || (cy <=0))
+                    {
+                        memset(miner_chart_buf_x0, 0, 500000);
+                        memset(miner_chart_buf_y0, 0, 500000);
+                        sprintf(miner_chart_buf_x0, "[]");
+                        sprintf(miner_chart_buf_y0, "[]");
+                        goto JSON_PRINT;
+                    }
+                }
+                else
+                {
+                    cx = sprintf(miner_chart_buf_x, "]");
+                    cy = sprintf(miner_chart_buf_y, "]");
+                    if ((cx <= 0) || (cy <=0))
+                    {
+                        memset(miner_chart_buf_x0, 0, 500000);
+                        memset(miner_chart_buf_y0, 0, 500000);
+                        sprintf(miner_chart_buf_x0, "[]");
+                        sprintf(miner_chart_buf_y0, "[]");
+                        goto JSON_PRINT;
+                    }
+                }
+                miner_chart_buf_x += cx;
+                miner_chart_buf_y += cy;
+            }
+            free(chart_array);
+            chart_array = NULL;
+        }
+    }
+JSON_PRINT:
     evbuffer_add_printf(buf, "{"
             "\"pool_hashrate\":%"PRIu64","
 #ifdef P2POOL
             "\"p2pool_hashrate\":%"PRIu64","
+            "\"p2pool_hashrate_local\":%"PRIu64","
 #endif
             "\"round_hashes\":%"PRIu64","
             "\"network_hashrate\":%"PRIu64","
@@ -246,11 +345,14 @@ send_json_stats(struct evhttp_request *req, void *arg)
             "\"miner_last_payout\":%.8f,"
             "\"miner_last_payout_ts\":%"PRIu64","
             "\"miner_hashrate_mean24h\":%"PRIu64","
+            "\"miner_chart_x\":%s,"
+            "\"miner_chart_y\":%s,"
             "\"worker_count\": %"PRIu64
             "}",
             ph,
 #ifdef P2POOL
             p2h,
+            p2h_hashrate_15m,
 #endif
             rh, nh, nd, height, ltf, lbf, lbfh, pbf,
             context->payment_threshold, context->pool_fee,
@@ -258,7 +360,7 @@ send_json_stats(struct evhttp_request *req, void *arg)
             ss, context->pool_stats->connected_accounts,
             (uint64_t)mh[0],
             (uint64_t)mh[0], (uint64_t)mh[1], (uint64_t)mh[2],
-            (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, mlpval, mlpts, mhrmean24h, wc);
+            (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, mlpval, mlpts, mhrmean24h, miner_chart_buf_x0, miner_chart_buf_y0, wc);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
     evhttp_send_reply(req, HTTP_OK, "OK", buf);

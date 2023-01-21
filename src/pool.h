@@ -35,7 +35,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 void account_hr(double *avg, const char *address);
 uint64_t account_balance(const char *address);
 int get_last_payout(const char *address, uint64_t *amnt, uint64_t *ts);
-int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstddev);
+typedef struct hashrate_chart_t
+{
+    uint64_t hashrate_value;
+    time_t hashrate_timestamp;
+} hashrate_chart_t;
+int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstddev, uint64_t *chart_array_len_ptr, hashrate_chart_t **chart_array_ptr);
 uint64_t worker_count(const char *address);
 void worker_list(char *list_start, char *list_end, const char *address);
 

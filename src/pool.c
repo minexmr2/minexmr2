@@ -64,6 +64,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <openssl/bn.h>
 #include <pthread.h>
 
+#include "pool.h"
+
 #include "bstack.h"
 #include "util.h"
 #include "xmr.h"
@@ -741,6 +743,8 @@ store_share(uint64_t height, share_t *share)
         return rc;
     }
 
+    mdb_cursor_close(cursor);
+
     rc = mdb_txn_commit(txn);
     if (rc != 0)
     {
@@ -784,6 +788,8 @@ store_block(uint64_t height, block_t *block)
         mdb_txn_abort(txn);
         return rc;
     }
+
+    mdb_cursor_close(cursor);
 
     rc = mdb_txn_commit(txn);
     return rc;
@@ -832,7 +838,11 @@ account_balance(const char *address)
         return 0;
     }
 
-    MDB_val key = {ADDRESS_MAX, (void*)address};
+    char addrbuf[ADDRESS_MAX];
+    memset(addrbuf, 0, ADDRESS_MAX);
+    strcpy(addrbuf, address);
+
+    MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
     MDB_val val;
 
     rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
@@ -854,6 +864,8 @@ account_balance(const char *address)
 
     if (rc == 0)
         balance = *(uint64_t*)val.mv_data;
+
+    mdb_cursor_close(cursor);
 
     rc = mdb_txn_commit(txn);
     if (rc != 0)
@@ -934,7 +946,11 @@ balance_add(const char *address, uint64_t amount, MDB_txn *parent)
         return rc;
     }
 
-    MDB_val key = {ADDRESS_MAX, (void*)address};
+    char addrbuf[ADDRESS_MAX];
+    memset(addrbuf, 0, ADDRESS_MAX);
+    strcpy(addrbuf, address);
+
+    MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
     MDB_val val;
     rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
     if (rc == MDB_NOTFOUND)
@@ -972,6 +988,8 @@ balance_add(const char *address, uint64_t amount, MDB_txn *parent)
         mdb_txn_abort(txn);
         return rc;
     }
+
+    mdb_cursor_close(cursor);
 
     rc = mdb_txn_commit(txn);
     if (rc != 0)
@@ -1067,6 +1085,8 @@ payout_block(block_t *block, MDB_txn *parent)
             return rc;
         }
     }
+
+    mdb_cursor_close(cursor);
 
     rc = mdb_txn_commit(txn);
     return rc;
@@ -1176,13 +1196,15 @@ process_blocks(block_t *blocks, size_t count)
         }
     }
 
+    mdb_cursor_close(cursor);
+
     rc = mdb_txn_commit(txn);
     return rc;
 }
 
 int hr_update_in_database(const char *addr, time_t ts, uint64_t hr)
 {
-    log_info("entry hr = %"PRIu64, hr);
+    log_info("entry addr = %s, hr = %"PRIu64, addr, hr);
 
     int rc = 0;
     char *err = NULL;
@@ -1203,15 +1225,15 @@ int hr_update_in_database(const char *addr, time_t ts, uint64_t hr)
         return rc;
     }
 
-    char addrbuf[ADDRESS_MAX];
-    memset(addrbuf, 0, ADDRESS_MAX);
-    strcpy(addrbuf, addr);
-
     hashrate_t h;
     memset(h.hashrate_address, 0, ADDRESS_MAX);
     strcpy(h.hashrate_address, addr);
     h.hashrate_timestamp = (uint64_t)ts;
     h.hashrate_value = hr;
+
+    char addrbuf[ADDRESS_MAX];
+    memset(addrbuf, 0, ADDRESS_MAX);
+    strcpy(addrbuf, addr);
 
     MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
     MDB_val val = {sizeof(hashrate_t), (void*)&h};
@@ -1223,6 +1245,8 @@ int hr_update_in_database(const char *addr, time_t ts, uint64_t hr)
         return rc;
     }
 
+    mdb_cursor_close(cursor);
+
     if ((rc = mdb_txn_commit(txn)) != 0)
     {
         err = mdb_strerror(rc);
@@ -1231,7 +1255,7 @@ int hr_update_in_database(const char *addr, time_t ts, uint64_t hr)
         return rc;
     }
 
-    log_info("leave hr = %"PRIu64, hr);
+    log_info("leave addr = %s, hr = %"PRIu64, addr, hr);
     return rc;
 }
 
@@ -2117,7 +2141,9 @@ startup_scan_round_shares(void)
         else
             break;
     }
+
     mdb_cursor_close(cursor);
+
     rc = mdb_txn_commit(txn);
     if (rc != 0)
     {
@@ -2193,6 +2219,7 @@ startup_payout(uint64_t height)
     }
 
     mdb_cursor_close(cursor);
+
     rc = mdb_txn_commit(txn);
     if (rc != 0)
     {
@@ -2380,6 +2407,7 @@ p2pool_reward_balances_by_shares(int64_t *pbalance_prev, int64_t unlocked_balanc
     }
 
     mdb_cursor_close(cursor);
+
     mdb_txn_abort(txn);
 
     log_debug("total_difficulty=%"PRIu64"", total_difficulty);
@@ -2823,12 +2851,19 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         json_object_put(root);
         return;
     }
+
     gbag_t *bag_pay = (gbag_t*) callback->data;
     payment_t *p = (payment_t*) gbag_first(bag_pay);
+
     while((p = gbag_next(bag_pay, 0)))
     {
         MDB_cursor_op op = MDB_SET;
-        MDB_val key = {ADDRESS_MAX, (void*)p->address};
+
+        char addrbuf[ADDRESS_MAX];
+        memset(addrbuf, 0, ADDRESS_MAX);
+        strcpy(addrbuf, p->address);
+
+        MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
         MDB_val val;
         rc = mdb_cursor_get(cursor, &key, &val, op);
         if (rc == MDB_NOTFOUND)
@@ -2869,6 +2904,9 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
             return;
         }
     }
+
+    mdb_cursor_close(cursor);
+
     if ((rc = mdb_txn_commit(txn)) != 0)
     {
         err = mdb_strerror(rc);
@@ -2897,12 +2935,19 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         json_object_put(root);
         return;
     }
+
     time_t now = time(NULL);
     p = (payment_t*) gbag_first(bag_pay);
+
     while((p = gbag_next(bag_pay, 0)))
     {
         p->timestamp = now;
-        MDB_val key = {ADDRESS_MAX, (void*)p->address};
+
+        char addrbuf[ADDRESS_MAX];
+        memset(addrbuf, 0, ADDRESS_MAX);
+        strcpy(addrbuf, p->address);
+
+        MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
         MDB_val val = {sizeof(payment_t), p};
         if ((rc = mdb_cursor_put(cursor, &key, &val, 0)) != 0)
         {
@@ -2914,6 +2959,9 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
             return;
         }
     }
+
+    mdb_cursor_close(cursor);
+
     if ((rc = mdb_txn_commit(txn)) != 0)
     {
         err = mdb_strerror(rc);
@@ -2966,7 +3014,11 @@ int get_last_payout(const char *address, uint64_t *amnt, uint64_t *ts)
         return rc;
     }
 
-    MDB_val key = {ADDRESS_MAX, (void*)address};
+    char addrbuf[ADDRESS_MAX];
+    memset(addrbuf, 0, ADDRESS_MAX);
+    strcpy(addrbuf, address);
+
+    MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
     MDB_val val;
 
     rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
@@ -3011,15 +3063,16 @@ int get_last_payout(const char *address, uint64_t *amnt, uint64_t *ts)
         err = mdb_strerror(rc);
         log_error("%s", err);
     }
+
     mdb_cursor_close(cursor);
+
     mdb_txn_abort(txn);
     return rc;
 }
 
-int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstddev)
+int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstddev, uint64_t *chart_array_len_ptr, hashrate_chart_t **chart_array_ptr)
 {
-    log_info("entry");
-
+    log_info("entry address = %s", address);
     int rc = 0;
     char *err = NULL;
     MDB_txn *txn = NULL;
@@ -3039,7 +3092,11 @@ int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstd
         return rc;
     }
 
-    MDB_val key = {ADDRESS_MAX, (void*)address};
+    char addrbuf[ADDRESS_MAX];
+    memset(addrbuf, 0, ADDRESS_MAX);
+    strcpy(addrbuf, address);
+
+    MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
     MDB_val val;
 
     rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
@@ -3071,28 +3128,62 @@ int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstd
             return -12345;
         }
 
+        *hrmean = 0;
+        *chart_array_len_ptr = 0;
+        *chart_array_ptr = NULL;
+
+        time_t now = time(NULL);
+        uint64_t hrtslatest = (uint64_t)now;
+
+        if ((hrtslatest - h.hashrate_timestamp) > (24 * 3600))
+            goto NO_CHART_DATA;
+
         double hravgsum = h.hashrate_value;
-        uint64_t hrtslatest = h.hashrate_timestamp;
         uint64_t hrcount = 1;
+
+        *chart_array_ptr = (hashrate_chart_t *)malloc(sizeof(hashrate_chart_t)*(24*30*3));
+        if (*chart_array_ptr == NULL)
+        {
+            log_error("malloc");
+            mdb_txn_abort(txn);
+            return -12346;
+        }
+        hashrate_chart_t *cur_ptr = *chart_array_ptr;
+
+        cur_ptr->hashrate_timestamp = h.hashrate_timestamp;
+        cur_ptr->hashrate_value = h.hashrate_value;
+        ++cur_ptr;
 
         hashrate_t h1;
         while ((rc = mdb_cursor_get(cursor, &key, &val, MDB_PREV_DUP)) == 0)
         {
             memcpy(&h1, val.mv_data, sizeof(hashrate_t));
-            if ((hrtslatest - h1.hashrate_timestamp) > (24 * 3600 * 1000))
+            if ((hrtslatest - h1.hashrate_timestamp) > (24 * 3600))
                 break;
 
-            if ((h.hashrate_timestamp - h1.hashrate_timestamp) > ((240+240)*1000))
+            if ((h.hashrate_timestamp - h1.hashrate_timestamp) > (240 + 240))
             {
                 // accumulate zero values
                 hravgsum += 0.0; // there was no hashrate
-                hrcount += ((h.hashrate_timestamp - h1.hashrate_timestamp - 240*1000) / (240*1000));
+                hrcount += ((h.hashrate_timestamp - h1.hashrate_timestamp - 240) / 240);
+
+                for (uint64_t i = 0; i < hrcount; ++i)
+                {
+                    //cur_ptr->hashrate_timestamp = h.hashrate_timestamp;
+                    cur_ptr->hashrate_value = 0;
+                    cur_ptr->hashrate_timestamp = h.hashrate_timestamp - 240 * (i + 1);
+                    ++cur_ptr;
+                }
             }
 
             hravgsum += h1.hashrate_value;
             hrcount += 1;
 
             memcpy(&h, &h1, sizeof(hashrate_t));
+
+            cur_ptr->hashrate_timestamp = h.hashrate_timestamp;
+            cur_ptr->hashrate_value = h.hashrate_value;
+            ++cur_ptr;
         }
 
         if ((rc != 0) && (rc != MDB_NOTFOUND))
@@ -3105,10 +3196,18 @@ int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstd
 
         hravgsum /= hrcount;
         *hrmean = (uint64_t) hravgsum;
-        log_info("success *hrmean = %"PRIu64, *hrmean);
+
+        *chart_array_len_ptr = hrcount;
+NO_CHART_DATA:
+        log_info("success address = %s, *hrmean = %"PRIu64, address, *hrmean);
+        mdb_cursor_close(cursor);
         mdb_txn_abort(txn);
         return 0;
     }
+
+    log_warn("MDB_NOTFOUND address = %s", address);
+
+    mdb_cursor_close(cursor);
 
     mdb_txn_abort(txn);
     return rc;
@@ -3175,7 +3274,9 @@ send_payments(void)
         cur_balance -= p->amount;
 #endif
     }
+
     mdb_cursor_close(cursor);
+
     if (rc != MDB_NOTFOUND)
     {
         err = mdb_strerror(rc);
@@ -3514,8 +3615,10 @@ upstream_send_backlog(void)
             continue;
         upstream_send_client_block(b);
     }
+
     mdb_cursor_close(curshr);
     mdb_cursor_close(curblk);
+
     rc = mdb_txn_commit(txn);
     if (rc != 0)
     {
@@ -3653,6 +3756,8 @@ upstream_on_balance(struct bufferevent *bev)
     MDB_txn *txn = NULL;
     uint64_t balance = 0;
     char address[ADDRESS_MAX];
+    memset(address, 0, ADDRESS_MAX);
+
     struct evbuffer *input = bufferevent_get_input(bev);
     evbuffer_remove(input, &balance, sizeof(uint64_t));
     evbuffer_remove(input, address, ADDRESS_MAX);
@@ -4428,6 +4533,7 @@ static void cull_database_by_cmp_func(MDB_dbi *db_ptr, const char *str_db_name, 
     }
 
     mdb_cursor_close(cursor);
+
     if ((rc = mdb_txn_commit(txn)))
         log_error("%s", mdb_strerror(rc));
     else
@@ -4435,8 +4541,6 @@ static void cull_database_by_cmp_func(MDB_dbi *db_ptr, const char *str_db_name, 
     goto done;
 
 abort:
-    if (cursor)
-        mdb_cursor_close(cursor);
     mdb_txn_abort(txn);
 done:
     return;

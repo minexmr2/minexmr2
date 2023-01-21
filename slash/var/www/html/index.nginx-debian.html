@@ -598,9 +598,11 @@ margin-top: 28px;
 }
 </style>
 
+<script src="plotly-finance-2.17.1.min.js"></script>
+
 </head>
 
-<body>
+<body onresize="myFunction()">
 
 
 
@@ -644,8 +646,19 @@ margin-top: 28px;
             <tr style="display: none;"><th>Pool SSL port:</th><td id="pool_ssl_port"></td></tr>
             <tr style="display: none;"><th>Allow self-select:</th><td id="allow_self_select"></td></tr>
             <tr><th>Miners connected:</th><td id="connected_miners"></td></tr>
+        </table>
+      </div>
+    </div>
+  </article>
+  <article class="episode1 card">
+    <div class="episode__number"><small><small><small>(Statistics API url (JSON-RPC): <b>https://minexmr2.com/stats</b>)</small></small></small></div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Miner Statistics</header>
+        <table class="stats">
             <tr class="miner"><th>Your hashrate:</th><td id="miner_hashrate"></td></tr>
             <tr class="miner"><th>Mean hashrate 24h:</th><td id="miner_hashrate_24h"></td></tr>
+            <tr class="miner"><td colspan="2"><div id="miner_plot" style="width:100%;"></div></td></tr>
             <tr class="miner"><th>Pending balance:</th><td id="miner_balance"></td></tr>
             <tr class="miner"><th>Last payout:</th><td id="miner_lp"></td></tr>
             <tr><th>Miner address:</th><td id="address" contenteditable="true"></td></tr>
@@ -660,6 +673,7 @@ margin-top: 28px;
         <header>P2pool Statistics<br/><sup><small><small>(Since 2023-01-09 UTC&nbsp;17:50 p2pool&nbsp;v2.7-jan-9)</small></small></sup></header>
         <table class="stats">
             <tr><th>Hashrate:</th><td id="p2pool_hashrate">service unavailable</td></tr>
+            <tr><th>Local hashrate:</th><td id="p2pool_hashrate_local"></td></tr>
             <tr><th>Blocks found:</th><td id="pool_blocks_found"></td></tr>
             <tr><th>Last block found:</th><td id="last_block_found"></td></tr>
             <tr><th>Last block height:</th><td id="last_block_found_height"></td></tr>
@@ -900,6 +914,87 @@ margin-top: 28px;
 </div>
 
 <script>
+var now = 1673969446;
+var tmpNow0 = now;
+var tmpNow1 = now+100;
+var tmpNow2 = now+200;
+
+function padTo2Digits(num) {
+  return num.toString().padStart(2, '0');
+}
+
+function formatDate(t) {
+  var d = new Date(t*1000);
+  return (
+    [
+      d.getFullYear(),
+      padTo2Digits(d.getMonth() + 1),
+      padTo2Digits(d.getDate()),
+    ].join('-') +
+    ' ' +
+    [
+      padTo2Digits(d.getHours()),
+      padTo2Digits(d.getMinutes()),
+      padTo2Digits(d.getSeconds()),
+    ].join(':')
+  );
+}
+
+var trace1 = {
+    x: [tmpNow0, tmpNow1, tmpNow2].map(formatDate),
+    y: [100, 300, 600],
+    type: 'scatter',
+    mode: 'lines',
+    line: {color: '#baf'}
+};
+
+var data = [trace1];
+
+var plot_w = window.innerWidth * 0.935;
+var plot_h = 300;
+
+var layout = {
+    title: "Miner's last 24h hashrate chart",
+    showlegend: false,
+    font: {size: 10, color: '#ddd'},
+  xaxis: {
+    title: 'Time',
+    showgrid: true,
+    gridcolor: '#555'
+    },
+  yaxis: {
+    title: 'Hashrate',
+    showgrid: true,
+    gridcolor: '#555'
+    },
+  autosize: true,
+  margin: {
+    l: 46,
+    r: 6,
+    b: 36,
+    t: 36,
+    pad: 0
+  },
+  plot_bgcolor:"#444",
+  paper_bgcolor:"#444",
+  width: plot_w,
+  height: plot_h
+};
+
+var config = {locale: 'us', responsive: true, staticPlot: true};
+//console.log(data[0].x);
+//console.log(data[0].y);
+Plotly.react('miner_plot', data, layout, config);
+Plotly.Plots.resize('miner_plot');
+
+function myFunction() {
+//console.log("myFunction");
+    plot_w = window.innerWidth * 0.935;
+    layout.width = plot_w;
+    Plotly.react('miner_plot', data, layout, config);
+    Plotly.Plots.resize('miner_plot');
+}
+
 // On toggler clicked
 
 document.getElementById('toggler').addEventListener('change', (event) => {
@@ -912,7 +1007,28 @@ document.getElementById('toggler').addEventListener('change', (event) => {
   }
   var slider2 = document.getElementsByClassName('slider2')[0];
   slider2.innerHTML = event.target.checked ? "DAY" : "NIGHT";
+
+  if (event.target.checked) {
+    layout.plot_bgcolor = "#fff";
+    layout.paper_bgcolor = "#fff";
+    layout.font.color = "#555";
+    layout.xaxis.gridcolor = "#ddd";
+    layout.yaxis.gridcolor = "#ddd";
+    data[0].line.color = "#54a";
+    Plotly.react('miner_plot', data, layout, config);
+  }
+  else {
+    layout.plot_bgcolor = "#444";
+    layout.paper_bgcolor = "#444";
+    layout.font.color = "#ddd";
+    layout.xaxis.gridcolor = "#555";
+    layout.yaxis.gridcolor = "#555";
+    data[0].line.color = "#baf";
+    Plotly.react('miner_plot', data, layout, config);
+  }
 });
+
+// Format AJAX data
 
     function format_last_time(last)
     {
@@ -990,12 +1106,16 @@ document.getElementById('toggler').addEventListener('change', (event) => {
 
     var wf = document.querySelector("#address");
     var xhr = new XMLHttpRequest();
+    xhr.withCredentials = true;
     var rhr = document.querySelector("#round_hashrate");
 
     xhr.onload = function()
     {
+if (xhr.readyState === xhr.DONE) {
+if (xhr.status === 200) {
+//console.log(document.cookie);
+//console.log("xhr.responseText = " + xhr.responseText);
         var stats = JSON.parse(xhr.responseText);
-console.log(stats);
         for (var e in stats)
         {
             var el = document.querySelector("#"+e);
@@ -1048,7 +1168,11 @@ console.log(stats);
 
         var elMinerHRMean24h = document.querySelector("#"+"miner_hashrate_24h");
         elMinerHRMean24h.innerHTML = format_hashrate(mhmean24h);
-    };
+
+        data[0].x = stats["miner_chart_x"].map(formatDate);
+        data[0].y = stats["miner_chart_y"];
+        Plotly.react('miner_plot', data, layout, config);
+}}    };
 
     wf.onblur = function(e)
     {
@@ -1085,7 +1209,8 @@ console.log(stats);
         }
         var get_stats = function()
         {
-            xhr.open("GET", "/stats");
+            xhr.open("GET", "/stats", true);
+            //xhr.setRequestHeader("Referrer-Policy", "unsafe-url");
             xhr.send(null);
         };
         setInterval(get_stats, 30000);
