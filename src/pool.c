@@ -3161,17 +3161,17 @@ int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstd
             if ((hrtslatest - h1.hashrate_timestamp) > (24 * 3600))
                 break;
 
-            if ((h.hashrate_timestamp - h1.hashrate_timestamp) > (240 + 240))
+            if ((h.hashrate_timestamp - h1.hashrate_timestamp) > (240 + 120))
             {
                 // accumulate zero values
                 hravgsum += 0.0; // there was no hashrate
-                hrcount += ((h.hashrate_timestamp - h1.hashrate_timestamp - 240) / 240);
+                hrcount += ((h.hashrate_timestamp - h1.hashrate_timestamp) / 240);
 
                 for (uint64_t i = 0; i < hrcount; ++i)
                 {
                     //cur_ptr->hashrate_timestamp = h.hashrate_timestamp;
                     cur_ptr->hashrate_value = 0;
-                    cur_ptr->hashrate_timestamp = h.hashrate_timestamp - 240 * (i + 1);
+                    cur_ptr->hashrate_timestamp =  h1.hashrate_timestamp + i * (h.hashrate_timestamp - h1.hashrate_timestamp) / hrcount + 1;
                     ++cur_ptr;
                 }
             }
