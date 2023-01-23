@@ -23,6 +23,8 @@ Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ⚡ Jan 23 2023: Miner's hashrate charts & p2pool local hashrate have been implemented and deployed to [minexmr2.com](https://minexmr2.com).
 
+![minexmr2.com: miner's hashrate charts & p2pool local hashrate have been implemented](miners_hashrate.jpg?raw=true)
+
 ⚡ Jan 09 2023: [minexmr2.com](https://minexmr2.com) server has been patched against [strange reddit-discussed issue](https://www.reddit.com/r/MoneroMining/comments/107gg2e/a_strange_issue_minexmr2com_has_encountered_this/); uses patched [p2pool v2.7-jan-9](https://github.com/SChernykh/p2pool/commit/ccc5117172706c3edbb04152d9c694028b232625) now.
 
 ⚡ Jan 03 2023: [minexmr2.com](https://minexmr2.com) server has implemented miner's hashrate recording for last N days. Pool web-ui shows miner's 24h-averaged hashrate and miner's last payout (amount @ time).
