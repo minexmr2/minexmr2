@@ -153,7 +153,7 @@ that will be transferred to TRUSTED bundle when it comes back online.
 
 ## Donations
 
-You donations help to evacuate my family from danger near-war zone of Ukraine.
+If you find MINEXMR2 as a good project to support decentralized p2pool hashrate, please donate XMR or BTC to further development. Our goal is to bring all the p2pool decentralized capabilities to every miner, without time/resource costs to deploy, upgrade, maintain the p2pool instance by himself.
 
 Donate XMR: 4AoKL73JHbJWSws7exQyxMYwgEvqkrpxX6hiLwLA8YXyESLHVCk7r9djR8fmeaDMSABCryvu1PjUGDYmQnkBNHum9NhDpbW
 

@@ -27,7 +27,7 @@ static constexpr char log_category_prefix[] = "StratumServer ";
 
 static constexpr int DEFAULT_BACKLOG = 128;
 static constexpr uint64_t DEFAULT_BAN_TIME = 6; //MX2
-static constexpr uint64_t MIN_DIFF = 10000; //MX2
+static constexpr uint64_t MIN_DIFF = 50000; //MX2
 static constexpr uint64_t AUTO_DIFF_TARGET_TIME = 30;
 
 // Use short target format (4 bytes) for diff <= 4 million
