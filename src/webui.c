@@ -124,6 +124,66 @@ static const char* load_file_as_c_string(const char *filename)
     return NULL;
 }
 #endif
+
+static void fill_chart_buffers(uint64_t chart_array_len, hashrate_chart_t *chart_array, char *miner_chart_buf_x, char *miner_chart_buf_y, char *miner_chart_buf_x0, char *miner_chart_buf_y0)
+{
+    int cx = sprintf(miner_chart_buf_x, "[");
+    int cy = sprintf(miner_chart_buf_y, "[");
+    if ((cx <= 0) || (cy <=0))
+    {
+        memset(miner_chart_buf_x0, 0, 250000);
+        memset(miner_chart_buf_y0, 0, 250000);
+        sprintf(miner_chart_buf_x0, "[]");
+        sprintf(miner_chart_buf_y0, "[]");
+        return;
+    }
+    miner_chart_buf_x += cx;
+    miner_chart_buf_y += cy;
+    for(uint64_t i = 0; i < chart_array_len; ++i)
+    {
+        cx = sprintf(miner_chart_buf_x, "%"PRIu64, chart_array[i].hashrate_timestamp);
+        cy = sprintf(miner_chart_buf_y, "%"PRIu64, chart_array[i].hashrate_value);
+        if ((cx <= 0) || (cy <=0))
+        {
+            memset(miner_chart_buf_x0, 0, 250000);
+            memset(miner_chart_buf_y0, 0, 250000);
+            sprintf(miner_chart_buf_x0, "[]");
+            sprintf(miner_chart_buf_y0, "[]");
+            return;
+        }
+        miner_chart_buf_x += cx;
+        miner_chart_buf_y += cy;
+        if (i != (chart_array_len - 1))
+        {
+            cx = sprintf(miner_chart_buf_x, ",");
+            cy = sprintf(miner_chart_buf_y, ",");
+            if ((cx <= 0) || (cy <=0))
+            {
+                memset(miner_chart_buf_x0, 0, 250000);
+                memset(miner_chart_buf_y0, 0, 250000);
+                sprintf(miner_chart_buf_x0, "[]");
+                sprintf(miner_chart_buf_y0, "[]");
+                return;
+            }
+        }
+        else
+        {
+            cx = sprintf(miner_chart_buf_x, "]");
+            cy = sprintf(miner_chart_buf_y, "]");
+            if ((cx <= 0) || (cy <=0))
+            {
+                memset(miner_chart_buf_x0, 0, 250000);
+                memset(miner_chart_buf_y0, 0, 250000);
+                sprintf(miner_chart_buf_x0, "[]");
+                sprintf(miner_chart_buf_y0, "[]");
+                return;
+            }
+        }
+        miner_chart_buf_x += cx;
+        miner_chart_buf_y += cy;
+    }
+}
+
 static void
 send_json_stats(struct evhttp_request *req, void *arg)
 {
@@ -131,10 +191,6 @@ send_json_stats(struct evhttp_request *req, void *arg)
     wui_context_t *context = (wui_context_t*) arg;
     struct evkeyvalq *hdrs_out = NULL;
     uint64_t ph = context->pool_stats->pool_hashrate;
-#ifdef P2POOL
-    uint64_t p2h = 0;
-    uint64_t p2h_hashrate_15m = 0;
-#endif
     uint64_t nh = context->pool_stats->network_hashrate;
     uint64_t nd = context->pool_stats->network_difficulty;
     uint64_t height = context->pool_stats->network_height;
@@ -143,7 +199,10 @@ send_json_stats(struct evhttp_request *req, void *arg)
     uint64_t lbfh = context->pool_stats->last_block_found_height;
     uint32_t pbf = context->pool_stats->pool_blocks_found;
 #ifdef P2POOL
+    uint64_t p2h = 0;
+    uint64_t p2h_hashrate_15m = 0;
     const char* str_json_pool = load_file_as_c_string("/home/p2pool/stats/pool/stats");
+
     if (str_json_pool)
     {
         json_object *root = json_tokener_parse(str_json_pool);
@@ -197,6 +256,7 @@ send_json_stats(struct evhttp_request *req, void *arg)
     }
 
     str_json_pool = load_file_as_c_string("/home/p2pool/stats/local/stats");
+
     if (str_json_pool)
     {
         json_object *root = json_tokener_parse(str_json_pool);
@@ -225,97 +285,100 @@ send_json_stats(struct evhttp_request *req, void *arg)
     double mb = 0.0;
     uint64_t wc = 0;
     const char *wa = fetch_wa_cookie(req);
+    const char *wa0 = "";
     double mlpval = 0.0;
     uint64_t mlpts = 0;
+
     uint64_t mhrmean24h = 0;
+    uint64_t mhrmean24h2 = 0;
+
     uint64_t chart_array_len = 0;
     hashrate_chart_t *chart_array = NULL;
-    char miner_chart_buf_x_init[500000];
-    char miner_chart_buf_y_init[500000];
+    uint64_t chart_array_len2 = 0;
+    hashrate_chart_t *chart_array2 = NULL;
+    uint64_t chart_array_len3 = 0;
+    payout_chart_t *chart_array3 = NULL;
+
+    char miner_chart_buf_x_init[250000];
+    char miner_chart_buf_y_init[250000];
     char *miner_chart_buf_x0 = miner_chart_buf_x_init;
     char *miner_chart_buf_y0 = miner_chart_buf_y_init;
-    memset(miner_chart_buf_x0, 0, 500000);
-    memset(miner_chart_buf_y0, 0, 500000);
+    memset(miner_chart_buf_x0, 0, 250000);
+    memset(miner_chart_buf_y0, 0, 250000);
     sprintf(miner_chart_buf_x0, "[]");
     sprintf(miner_chart_buf_y0, "[]");
     char *miner_chart_buf_x = miner_chart_buf_x_init;
     char *miner_chart_buf_y = miner_chart_buf_y_init;
+
+    char miner_chart_buf_x_init2[250000];
+    char miner_chart_buf_y_init2[250000];
+    char *miner_chart_buf_x02 = miner_chart_buf_x_init2;
+    char *miner_chart_buf_y02 = miner_chart_buf_y_init2;
+    memset(miner_chart_buf_x02, 0, 250000);
+    memset(miner_chart_buf_y02, 0, 250000);
+    sprintf(miner_chart_buf_x02, "[]");
+    sprintf(miner_chart_buf_y02, "[]");
+    char *miner_chart_buf_x2 = miner_chart_buf_x_init2;
+    char *miner_chart_buf_y2 = miner_chart_buf_y_init2;
+
+    char miner_chart_buf_x_init3[250000];
+    char miner_chart_buf_y_init3[250000];
+    char *miner_chart_buf_x03 = miner_chart_buf_x_init3;
+    char *miner_chart_buf_y03 = miner_chart_buf_y_init3;
+    memset(miner_chart_buf_x03, 0, 250000);
+    memset(miner_chart_buf_y03, 0, 250000);
+    sprintf(miner_chart_buf_x03, "[]");
+    sprintf(miner_chart_buf_y03, "[]");
+    char *miner_chart_buf_x3 = miner_chart_buf_x_init3;
+    char *miner_chart_buf_y3 = miner_chart_buf_y_init3;
 
     if (wa)
     {
         account_hr(mh, wa);
         wc = worker_count(wa);
         uint64_t balance = account_balance(wa);
-        mb = (double) balance / 1000000000000.0;
-        uint64_t payamount = 0;
-        int rc = get_last_payout(wa, &payamount, &mlpts);
-        if (rc == 0)
-            mlpval = (double) payamount / 1000000000000.0;
-
-        uint64_t hrtmp = 0;
-        rc = get_24h_meanstddev_hr(wa, &hrtmp, NULL, &chart_array_len, &chart_array);
-        if ((rc == 0) && (chart_array_len > 0))
-        {
-            mhrmean24h = hrtmp;
-            int cx = sprintf(miner_chart_buf_x, "[");
-            int cy = sprintf(miner_chart_buf_y, "[");
-            if ((cx <= 0) || (cy <=0))
-            {
-                memset(miner_chart_buf_x0, 0, 500000);
-                memset(miner_chart_buf_y0, 0, 500000);
-                sprintf(miner_chart_buf_x0, "[]");
-                sprintf(miner_chart_buf_y0, "[]");
-                goto JSON_PRINT;
-            }
-            miner_chart_buf_x += cx;
-            miner_chart_buf_y += cy;
-            for(uint64_t i = 0; i < chart_array_len; ++i)
-            {
-                cx = sprintf(miner_chart_buf_x, "%"PRIu64, chart_array[chart_array_len - i - 1].hashrate_timestamp);
-                cy = sprintf(miner_chart_buf_y, "%"PRIu64, chart_array[chart_array_len - i - 1].hashrate_value);
-                if ((cx <= 0) || (cy <=0))
-                {
-                    memset(miner_chart_buf_x0, 0, 500000);
-                    memset(miner_chart_buf_y0, 0, 500000);
-                    sprintf(miner_chart_buf_x0, "[]");
-                    sprintf(miner_chart_buf_y0, "[]");
-                    goto JSON_PRINT;
-                }
-                miner_chart_buf_x += cx;
-                miner_chart_buf_y += cy;
-                if (i != (chart_array_len - 1))
-                {
-                    cx = sprintf(miner_chart_buf_x, ",");
-                    cy = sprintf(miner_chart_buf_y, ",");
-                    if ((cx <= 0) || (cy <=0))
-                    {
-                        memset(miner_chart_buf_x0, 0, 500000);
-                        memset(miner_chart_buf_y0, 0, 500000);
-                        sprintf(miner_chart_buf_x0, "[]");
-                        sprintf(miner_chart_buf_y0, "[]");
-                        goto JSON_PRINT;
-                    }
-                }
-                else
-                {
-                    cx = sprintf(miner_chart_buf_x, "]");
-                    cy = sprintf(miner_chart_buf_y, "]");
-                    if ((cx <= 0) || (cy <=0))
-                    {
-                        memset(miner_chart_buf_x0, 0, 500000);
-                        memset(miner_chart_buf_y0, 0, 500000);
-                        sprintf(miner_chart_buf_x0, "[]");
-                        sprintf(miner_chart_buf_y0, "[]");
-                        goto JSON_PRINT;
-                    }
-                }
-                miner_chart_buf_x += cx;
-                miner_chart_buf_y += cy;
-            }
-            free(chart_array);
-            chart_array = NULL;
-        }
+        mb = (double) balance / 1E12;
     }
+    else
+    {
+        wa = wa0;
+    }
+
+    uint64_t hrtmp = 0;
+    uint64_t hrtmp2 = 0;
+    uint64_t payamount = 0;
+
+    int rc = get_24h_meanstddev_hr(wa, &hrtmp, NULL, &chart_array_len, &chart_array, &hrtmp2, NULL, &chart_array_len2, &chart_array2,
+        &payamount, &mlpts, &chart_array_len3, &chart_array3);
+
+    if ((rc == 0) && (chart_array_len > 0))
+    {
+        mhrmean24h = hrtmp;
+
+        fill_chart_buffers(chart_array_len, chart_array, miner_chart_buf_x, miner_chart_buf_y, miner_chart_buf_x0, miner_chart_buf_y0);
+
+        free(chart_array);
+        chart_array = NULL;
+    }
+    if ((rc == 0) && (chart_array_len2 > 0))
+    {
+        mhrmean24h2 = hrtmp2;
+
+        fill_chart_buffers(chart_array_len2, chart_array2, miner_chart_buf_x2, miner_chart_buf_y2, miner_chart_buf_x02, miner_chart_buf_y02);
+
+        free(chart_array2);
+        chart_array2 = NULL;
+    }
+    if ((rc == 0) && (chart_array_len3 > 0))
+    {
+        mlpval = (double) payamount / 1E12;
+
+        fill_chart_buffers(chart_array_len3, chart_array3, miner_chart_buf_x3, miner_chart_buf_y3, miner_chart_buf_x03, miner_chart_buf_y03);
+
+        free(chart_array3);
+        chart_array3 = NULL;
+    }
+
 JSON_PRINT:
     evbuffer_add_printf(buf, "{"
             "\"pool_hashrate\":%"PRIu64","
@@ -341,12 +404,17 @@ JSON_PRINT:
             "\"miner_hashrate_stats\":["
                     "%"PRIu64",%"PRIu64",%"PRIu64","
                     "%"PRIu64",%"PRIu64",%"PRIu64"],"
-            "\"miner_balance\":%.8f,"
-            "\"miner_last_payout\":%.8f,"
+            "\"miner_balance\":%.12f,"
+            "\"miner_last_payout\":%.12f,"
             "\"miner_last_payout_ts\":%"PRIu64","
             "\"miner_hashrate_mean24h\":%"PRIu64","
             "\"miner_chart_x\":%s,"
             "\"miner_chart_y\":%s,"
+            "\"p2pool_hashrate_mean24h\":%"PRIu64","
+            "\"p2pool_chart_x\":%s,"
+            "\"p2pool_chart_y\":%s,"
+            "\"payout_chart_x\":%s,"
+            "\"payout_chart_y\":%s,"
             "\"worker_count\": %"PRIu64
             "}",
             ph,
@@ -360,7 +428,8 @@ JSON_PRINT:
             ss, context->pool_stats->connected_accounts,
             (uint64_t)mh[0],
             (uint64_t)mh[0], (uint64_t)mh[1], (uint64_t)mh[2],
-            (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, mlpval, mlpts, mhrmean24h, miner_chart_buf_x0, miner_chart_buf_y0, wc);
+            (uint64_t)mh[3], (uint64_t)mh[4], (uint64_t)mh[5], mb, mlpval, mlpts, mhrmean24h, miner_chart_buf_x0, miner_chart_buf_y0,
+            mhrmean24h2, miner_chart_buf_x02, miner_chart_buf_y02, miner_chart_buf_x03, miner_chart_buf_y03, wc);
     hdrs_out = evhttp_request_get_output_headers(req);
     evhttp_add_header(hdrs_out, "Content-Type", "application/json");
     evhttp_send_reply(req, HTTP_OK, "OK", buf);

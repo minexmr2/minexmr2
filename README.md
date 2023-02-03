@@ -21,6 +21,12 @@ Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
 
+⚡ Feb 03 2023: **[minexmr2.com](https://minexmr2.com) is now full-fledged!** P2Pool hashrate charts & miner's last 10 payouts to show in web-UI
+have been implemented and deployed to minexmr2.com with miner's hashrate charts.
+Remember, the pool supports only automatic difficulty that is coming from p2pool and starts from some 4000K.
+Minimum possible difficulty is set to 50000. That steps are made to avoid server's overloading by misconfigured miner rigs.
+Minimum total miner's hashrate (per each unique XMR address) is recommended to have at least 50KH/s.
+
 ⚡ Jan 23 2023: Miner's hashrate charts & p2pool local hashrate have been implemented and deployed to [minexmr2.com](https://minexmr2.com).
 
 ![minexmr2.com: miner's hashrate charts & p2pool local hashrate have been implemented](miners_hashrate.jpg?raw=true)

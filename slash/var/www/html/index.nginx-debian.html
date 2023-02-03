@@ -607,7 +607,7 @@ margin-top: 28px;
 
 </head>
 
-<body onresize="myFunction()">
+<body>
 
 
 
@@ -658,26 +658,12 @@ margin-top: 28px;
   <article class="episode1 card">
     <div class="episode__number"><small><small><small>(Statistics API url (JSON-RPC): <b>https://minexmr2.com/stats</b>)</small></small></small></div>
     <div class="episode__content">
-      <div class="story">
-        <header>Miner Statistics</header>
-        <table class="stats">
-            <tr class="miner"><th>Your hashrate:</th><td id="miner_hashrate"></td></tr>
-            <tr class="miner"><th>Mean hashrate 24h:</th><td id="miner_hashrate_24h"></td></tr>
-            <tr class="miner"><td colspan="2"><div id="miner_plot" style="width:100%;"></div></td></tr>
-            <tr class="miner"><th>Pending balance:</th><td id="miner_balance"></td></tr>
-            <tr class="miner"><th>Last payout:</th><td id="miner_lp"></td></tr>
-            <tr><th>Miner address:</th><td id="address" contenteditable="true"></td></tr>
-        </table>
-      </div>
-    </div>
-  </article>
-  <article class="episode1 card">
-    <div class="episode__number"><small><small><small>(Statistics API url (JSON-RPC): <b>https://minexmr2.com/stats</b>)</small></small></small></div>
-    <div class="episode__content">
-      <div class="story">
-        <header>P2pool Statistics<br/><sup><small><small>(Since 2023-01-09 UTC&nbsp;17:50 p2pool&nbsp;v2.7-jan-9)</small></small></sup></header>
+      <div id="p2pool_plot_td" class="story">
+        <header>P2Pool Statistics<br/><sup><small><small>(Since 2023-01-09 UTC&nbsp;17:50 p2pool&nbsp;v2.7-jan-9)</small></small></sup></header>
         <table class="stats">
             <tr><th>Hashrate:</th><td id="p2pool_hashrate">service unavailable</td></tr>
+            <tr><th>Mean hashrate 24h:</th><td id="p2pool_hashrate_24h"></td></tr>
+            <tr><td colspan="2"><div id="p2pool_plot" style="width:100%;"></div></td></tr>
             <tr><th>Local hashrate:</th><td id="p2pool_hashrate_local"></td></tr>
             <tr><th>Blocks found:</th><td id="pool_blocks_found"></td></tr>
             <tr><th>Last block found:</th><td id="last_block_found"></td></tr>
@@ -695,6 +681,23 @@ margin-top: 28px;
             <tr><th>Hashrate:</th><td id="network_hashrate">service unavailable</td></tr>
             <tr><th>Last block found:</th><td id="last_template_fetched"></td></tr>
             <tr><th>Last block height:</th><td id="network_height"></td></tr>
+        </table>
+      </div>
+    </div>
+  </article>
+  <article class="episode1 card">
+    <div class="episode__number"><small><small><small>(Statistics API url (JSON-RPC): <b>https://minexmr2.com/stats</b>)</small></small></small></div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Miner Statistics</header>
+        <table class="stats">
+            <tr class="miner"><th>Your hashrate:</th><td id="miner_hashrate"></td></tr>
+            <tr class="miner"><th>Mean hashrate 24h:</th><td id="miner_hashrate_24h"></td></tr>
+            <tr class="miner"><td colspan="2"><div id="miner_plot" style="width:100%;"></div></td></tr>
+            <tr class="miner"><th>Pending balance:</th><td id="miner_balance"></td></tr>
+            <tr class="miner"><th>Last payout:</th><td id="miner_lp"></td></tr>
+            <tr class="miner"><td colspan="2"><div id="miner_lp_10" style="width:100%;font-size:10px;line-height:10px;text-align:center;">5435346</div></td></tr>
+            <tr><th>Miner address:</th><td id="address" contenteditable="true"></td></tr>
         </table>
       </div>
     </div>
@@ -944,8 +947,57 @@ function formatDate(t) {
   );
 }
 
+function formatDateUTC(t) {
+  var d = new Date(t*1000);
+  return (
+    [
+      d.getUTCFullYear(),
+      padTo2Digits(d.getUTCMonth() + 1),
+      padTo2Digits(d.getUTCDate()),
+    ].join('-') +
+    'UTC' +
+    [
+      padTo2Digits(d.getUTCHours()),
+      padTo2Digits(d.getUTCMinutes()),
+      padTo2Digits(d.getUTCSeconds()),
+    ].join(':')
+  );
+}
+
+function formatXMR(t) {
+    return (t/1E12).toFixed(12) + 'XMR';
+}
+
+function format_lp_10_arr(mlpts10_arr_x, mlpts10_arr_y)
+{
+    if (mlpts10_arr_x.length != mlpts10_arr_y.length)
+        return "";
+    var mlpts10_arr_x_date = mlpts10_arr_x.map(formatDateUTC);
+    var mlpts10_arr_y_xmr = mlpts10_arr_y.map(formatXMR)
+    var result = "";
+    for (var i = 0; i < mlpts10_arr_x_date.length; ++i) {
+        result += mlpts10_arr_y_xmr[i] + '&nbsp;@&nbsp;' + mlpts10_arr_x_date[i];
+        result += (i < (mlpts10_arr_x_date.length - 1)) ? ', ' : '.';
+    }
+    return result;
+}
+
+var mlpts10_arr_x = [1675350007,1675350008,1675340006,1675340007,1675330005,1675330007,1675330009,1675320009,1675320008,1675320005];
+var mlpts10_arr_y = [11300036199,11200006858,10100028026,10900008806,11000042626,12000078872,10400018414,10500027402,10600022061,10600086426];
+
+var elMinerLastPayouts10 = document.querySelector("#"+"miner_lp_10");
+elMinerLastPayouts10.innerHTML = format_lp_10_arr(mlpts10_arr_x, mlpts10_arr_y);
+
 var trace1 = {
-    x: [tmpNow0, tmpNow1, tmpNow2].map(formatDate),
+    x: [0+tmpNow0, 0+tmpNow1, 0+tmpNow2].map(formatDate),
+    y: [100, 300, 600],
+    type: 'scatter',
+    mode: 'lines',
+    line: {color: '#baf'}
+};
+
+var trace2 = {
+    x: [0+tmpNow0, 0+tmpNow1, 0+tmpNow2].map(formatDate),
     y: [100, 300, 600],
     type: 'scatter',
     mode: 'lines',
@@ -953,8 +1005,9 @@ var trace1 = {
 };
 
 var data = [trace1];
+var data2 = [trace2];
 
-var plot_w = window.innerWidth * 0.935;
+var plot_w = document.getElementById('p2pool_plot_td').getBoundingClientRect().width;
 var plot_h = 300;
 
 var layout = {
@@ -971,7 +1024,7 @@ var layout = {
     showgrid: true,
     gridcolor: '#555'
     },
-  autosize: true,
+  autosize: false,
   margin: {
     l: 46,
     r: 6,
@@ -981,28 +1034,92 @@ var layout = {
   },
   plot_bgcolor:"#444",
   paper_bgcolor:"#444",
-  width: plot_w,
-  height: plot_h
+  width: 0+plot_w,
+  height: 0+plot_h
 };
 
-var config = {locale: 'us', responsive: true, staticPlot: true};
+var layout2 = {
+    title: "P2Pool last 24h hashrate chart",
+    showlegend: false,
+    font: {size: 10, color: '#ddd'},
+  xaxis: {
+    title: 'Time (UTC)',
+    showgrid: true,
+    gridcolor: '#555'
+    },
+  yaxis: {
+    title: 'Hashrate',
+    showgrid: true,
+    gridcolor: '#555'
+    },
+  autosize: false,
+  margin: {
+    l: 46,
+    r: 6,
+    b: 40,
+    t: 36,
+    pad: 0
+  },
+  plot_bgcolor:"#444",
+  paper_bgcolor:"#444",
+  width: 0+plot_w,
+  height: 0+plot_h
+};
+
+var config = {locale: 'us', responsive: false, staticPlot: true};
+var config2 = {locale: 'us', responsive: false, staticPlot: true};
 //console.log(data[0].x);
 //console.log(data[0].y);
-Plotly.react('miner_plot', data, layout, config);
-Plotly.Plots.resize('miner_plot');
 
-function myFunction() {
-//console.log("myFunction");
-    plot_w = window.innerWidth * 0.935;
-    layout.width = plot_w;
-    Plotly.react('miner_plot', data, layout, config);
-    Plotly.Plots.resize('miner_plot');
+function koeff(w) {
+    if (w<700)
+        return 0.988;
+    if (w<1000)
+        return 0.995;
+    return 0.997;
 }
+
+//window.addEventListener('load', (event) => {
+    console.log('init');
+    //event.preventDefault();
+    plot_w = document.getElementById('p2pool_plot_td').getBoundingClientRect().width;
+    console.log("init: " + plot_w);
+    layout.width = (0+plot_w)*koeff(plot_w);
+    layout2.width = (0+plot_w)*koeff(plot_w);
+    Plotly.newPlot('miner_plot', data, layout, config);
+    Plotly.Plots.resize('miner_plot');
+    Plotly.newPlot('p2pool_plot', data2, layout2, config2);
+    Plotly.Plots.resize('p2pool_plot');
+//});
+
+window.addEventListener('resize', (event) => {
+    console.log('resize event');
+    //event.preventDefault();
+    plot_w = document.getElementById('p2pool_plot_td').getBoundingClientRect().width;
+    console.log("resize: " + plot_w);
+    layout.width = (0+plot_w)*koeff(plot_w);
+    layout2.width = (0+plot_w)*koeff(plot_w);
+    Plotly.newPlot('miner_plot', data, layout, config);
+    Plotly.Plots.resize('miner_plot');
+    Plotly.newPlot('p2pool_plot', data2, layout2, config2);
+    Plotly.Plots.resize('p2pool_plot');
+/*
+    Plotly.relayout('miner_plot', {
+            'xaxis.autorange': true,
+            'yaxis.autorange': true
+        });
+    Plotly.relayout('p2pool_plot', {
+            'xaxis.autorange': true,
+            'yaxis.autorange': true
+        });
+*/
+});
 
 // On toggler clicked
 
 document.getElementById('toggler').addEventListener('change', (event) => {
-  //console.log(toggler)
+  //console.log('change event');
+  event.preventDefault();
   var containers = document.getElementsByClassName('container');
   for (var i = 0; i < containers.length; ++i) {
     var container = containers[i];
@@ -1018,8 +1135,15 @@ document.getElementById('toggler').addEventListener('change', (event) => {
     layout.font.color = "#555";
     layout.xaxis.gridcolor = "#ddd";
     layout.yaxis.gridcolor = "#ddd";
+    layout2.plot_bgcolor = "#fff";
+    layout2.paper_bgcolor = "#fff";
+    layout2.font.color = "#555";
+    layout2.xaxis.gridcolor = "#ddd";
+    layout2.yaxis.gridcolor = "#ddd";
     data[0].line.color = "#54a";
-    Plotly.react('miner_plot', data, layout, config);
+    Plotly.newPlot('miner_plot', data, layout, config);
+    data2[0].line.color = "#54a";
+    Plotly.newPlot('p2pool_plot', data2, layout2, config2);
   }
   else {
     layout.plot_bgcolor = "#444";
@@ -1027,8 +1151,15 @@ document.getElementById('toggler').addEventListener('change', (event) => {
     layout.font.color = "#ddd";
     layout.xaxis.gridcolor = "#555";
     layout.yaxis.gridcolor = "#555";
+    layout2.plot_bgcolor = "#444";
+    layout2.paper_bgcolor = "#444";
+    layout2.font.color = "#ddd";
+    layout2.xaxis.gridcolor = "#555";
+    layout2.yaxis.gridcolor = "#555";
     data[0].line.color = "#baf";
-    Plotly.react('miner_plot', data, layout, config);
+    Plotly.newPlot('miner_plot', data, layout, config);
+    data2[0].line.color = "#baf";
+    Plotly.newPlot('p2pool_plot', data2, layout2, config2);
   }
 });
 
@@ -1168,14 +1299,29 @@ if (xhr.status === 200) {
         var elMinerLastPayout = document.querySelector("#"+"miner_lp");
         elMinerLastPayout.innerHTML = mlpval + " XMR @ " + format_last_time(mlpts);
 
+        mlpts10_arr_x = stats["payout_chart_x"];
+        mlpts10_arr_y = stats["payout_chart_y"];
+
+        var elMinerLastPayouts10 = document.querySelector("#"+"miner_lp_10");
+        elMinerLastPayouts10.innerHTML = format_lp_10_arr(mlpts10_arr_x, mlpts10_arr_y);
+
         var mhmean24h = stats["miner_hashrate_mean24h"];
 
         var elMinerHRMean24h = document.querySelector("#"+"miner_hashrate_24h");
         elMinerHRMean24h.innerHTML = format_hashrate(mhmean24h);
 
+        var p2phmean24h = stats["p2pool_hashrate_mean24h"];
+
+        var elP2PHRMean24h = document.querySelector("#"+"p2pool_hashrate_24h");
+        elP2PHRMean24h.innerHTML = format_hashrate(p2phmean24h);
+
         data[0].x = stats["miner_chart_x"].map(formatDate);
         data[0].y = stats["miner_chart_y"];
-        Plotly.react('miner_plot', data, layout, config);
+        Plotly.newPlot('miner_plot', data, layout, config);
+
+        data2[0].x = stats["p2pool_chart_x"].map(formatDate);
+        data2[0].y = stats["p2pool_chart_y"];
+        Plotly.newPlot('p2pool_plot', data2, layout2, config2);
 }}    };
 
     wf.onblur = function(e)
