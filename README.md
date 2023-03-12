@@ -2,7 +2,7 @@
 
 ⚡ Mar 12 2023: Successfully migrated to [p2pool v3.1](https://github.com/SChernykh/p2pool/releases/tag/v3.1)
 and [monerod v0.18.2.0](https://github.com/monero-project/monero/releases/tag/v0.18.2.0) and **ready for
-Mar 18 2023 p2pool (not monero) <img src="miner-mar18-bw2.png" align="right" style="width:auto;height:100px;" />
+Mar 18 2023 p2pool (not monero) <img src="miner-mar18-bw2.png" align="right" height="100" width="122" />
 [hard fork](https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/)**.
 
 <br clear="right"/>
