@@ -1,5 +1,10 @@
 # MINEXMR2: a Monero mining pool with regular payouts from p2pool inside, 100% pure open source
 
+⚡ Mar 12 2023: Successfully migrated to [p2pool v3.1](https://github.com/SChernykh/p2pool/releases/tag/v3.1)
+and [monerod v0.18.2.0](https://github.com/monero-project/monero/releases/tag/v0.18.2.0) and **ready for
+Mar 18 2023 p2pool (not monero)
+[hard fork](https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/)**.
+
 ## Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider for frequent payouts (approx. 2 times/hour) 👋
 
 ![minexmr2.com site screenshot](minexmr2_screenshot.jpg?raw=true)
