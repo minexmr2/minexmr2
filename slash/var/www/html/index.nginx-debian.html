@@ -90,7 +90,7 @@ body {
 }
 
 h1.menu {
-    background-color: #903;
+    background-color: var(--block-red-color);
     color: #fff;
     padding: 8px;
     font-size: 1.2em;
@@ -150,8 +150,37 @@ img.inline_header2 {
 }
 
 p.story_red {
-    background-color: #903;
+    background-color: var(--block-red-color);
     color: #fff;
+}
+
+header.story_red_block {
+    background-color: var(--block-red-color);
+    color: #fff;
+    line-height: 1em;
+    font-size: 0.8em;
+    padding: 8px;
+}
+
+/*
+  --link-color: #39d;
+  --link-color-hover: #3cf;
+*/
+
+header.story_red_block a:link {
+    color: #6cf;
+}
+
+header.story_red_block a:visited {
+    color: #6cf;
+}
+
+header.story_red_block a:active {
+    color: #6cf;
+}
+
+header.story_red_block a:hover {
+    color: #9df;
 }
 
 .story ul {
@@ -347,6 +376,7 @@ margin-top: 0px;
   --link-color: #36a;
   --link-color-hover: #39f;
   --slider2-color: #fff;
+  --block-red-color: #a36;
 }
 /* Dark Mode Theme */
 [data-theme="dark"] {
@@ -363,6 +393,7 @@ margin-top: 0px;
   --link-color: #39d;
   --link-color-hover: #3cf;
   --slider2-color: #ccc;
+  --block-red-color: #903;
 }
 
 .container {
@@ -485,52 +516,8 @@ margin-top: 30px;
 }
 
 
-@media only screen and (max-device-width: 767px) and (orientation: landscape) {
 
-.episode1 .episode__content .story p {
-    font-size: 10px;
-  line-height: 12px;
-}
-
-.episode1 .episode__content .story ul {
-    font-size: 10px;
-  line-height: 12px;
-
-}
-
-.episode2 .episode__content .story p {
-    font-size: 1em;
-    line-height: 1.5em;
-}
-
-.episode2 .episode__content .story ul {
-    font-size: 1em;
-    line-height: 1.5em;
-
-}
-
-.footnote .episode__content .story p {
-    font-size: 8px;
-  line-height: 10px;
-}
-
-.footnote .episode__content .story ul {
-    font-size: 8px;
-  line-height: 10px;
-}
-
-.container_margin_footnote {
-margin-top: 26px;
-}
-
-.container_margin_donate {
-margin-top: 26px;
-}
-
-}
-
-
-@media only screen and (max-width: 767px) {
+@media only screen and (max-device-width: 767px) and (orientation: portrait) {
 
 h1.menu {
     font-size: 11px;
@@ -601,6 +588,68 @@ margin-top: 28px;
     line-height: 1.5em;
 
 }
+
+header.story_red_block {
+    font-size: 11px;
+  line-height: 12px;
+}
+
+}
+
+
+
+@media only screen and (max-device-width: 767px) and (orientation: landscape) {
+
+h1.menu {
+    font-size: 20px;
+}
+
+.episode1 .episode__content .story p {
+    font-size: 10px;
+  line-height: 12px;
+}
+
+.episode1 .episode__content .story ul {
+    font-size: 10px;
+  line-height: 12px;
+
+}
+
+.episode2 .episode__content .story p {
+    font-size: 1em;
+    line-height: 1.5em;
+}
+
+.episode2 .episode__content .story ul {
+    font-size: 1em;
+    line-height: 1.5em;
+
+}
+
+.footnote .episode__content .story p {
+    font-size: 8px;
+  line-height: 10px;
+}
+
+.footnote .episode__content .story ul {
+    font-size: 8px;
+  line-height: 10px;
+}
+
+.container_margin_footnote {
+margin-top: 26px;
+}
+
+.container_margin_donate {
+margin-top: 26px;
+}
+
+header.story_red_block {
+    font-size: 8px;
+  line-height: 10px;
+}
+
+}
 </style>
 
 <script src="plotly-finance-2.17.1.min.js"></script>
@@ -659,7 +708,14 @@ margin-top: 28px;
     <div class="episode__number"><small><small><small>(Statistics API url (JSON-RPC): <b>https://minexmr2.com/stats</b>)</small></small></small></div>
     <div class="episode__content">
       <div id="p2pool_plot_td" class="story">
-        <header>P2Pool Statistics<br/><sup><small><small>(Since 2023-01-09 UTC&nbsp;17:50 p2pool&nbsp;v2.7-jan-9)</small></small></sup></header>
+        <header>P2Pool Statistics</header>
+        <header class="story_red_block">(Since 2023-03-11 UTC&nbsp;10:00
+        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.1" target="_blank">p2pool&nbsp;v3.1</a>,
+        <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.0" target="_blank">monerod&nbsp;v0.18.2.0</a>
+        ready for
+        Mar&nbsp;18&nbsp;2023
+        p2pool (not monero)
+        <a href="https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/" target="_blank">hard fork</a>)</header>
         <table class="stats">
             <tr><th>Hashrate:</th><td id="p2pool_hashrate">service unavailable</td></tr>
             <tr><th>Mean hashrate 24h:</th><td id="p2pool_hashrate_24h"></td></tr>
@@ -902,8 +958,8 @@ margin-top: 28px;
         <p>Pool and site implementation of minexmr2.com is open&nbsp;source and mirrored on both
         <a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a>,
         <a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a>. It is built against Monero
-        <a href="https://github.com/monero-project/monero/releases/tag/v0.18.1.2" target="_blank">Fluorine Fermi, Point Release&nbsp;1.2</a> and custom-patched
-        <a href="https://github.com/SChernykh/p2pool/commit/ccc5117172706c3edbb04152d9c694028b232625" target="_blank">p2pool&nbsp;v2.7-jan-9</a>.
+        <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.0" target="_blank">monerod&nbsp;v0.18.2.0</a> and custom-patched
+        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.1" target="_blank">p2pool&nbsp;v3.1</a>.
         </p>
       </div>
     </div>

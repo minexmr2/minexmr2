@@ -21,6 +21,13 @@ Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
 
+⚡ Mar 12 2023: Successfully migrated to [p2pool v3.1](https://github.com/SChernykh/p2pool/releases/tag/v3.1)
+and [monerod v0.18.2.0](https://github.com/monero-project/monero/releases/tag/v0.18.2.0) and **ready for
+Mar 18 2023 p2pool (not monero)
+[hard fork](https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/)**.
+Traditional pool mode (without p2pool) is no longer supported, eliminating unused RandomX hash checking on the pool side
+(it is being made on p2pool side now). Small color fixes to the day theme.
+
 ⚡ Feb 03 2023: **[minexmr2.com](https://minexmr2.com) is now full-fledged!** P2Pool hashrate charts & miner's last 10 payouts to show in web-UI
 have been implemented and deployed to minexmr2.com with miner's hashrate charts.
 Remember, the pool supports only automatic difficulty that is coming from p2pool and starts from some 4000K.

@@ -87,8 +87,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MAINNET_ADDRESS_PREFIX 18
 #define TESTNET_ADDRESS_PREFIX 53
 #define BLOCK_HEADERS_RANGE 10
-#define DB_INIT_SIZE 0x140000000 /* 5G */
-#define DB_GROW_SIZE 0xA0000000 /* 2.5G */
+#define DB_INIT_SIZE 0xA0000000 /* 2.5G */
+#define DB_GROW_SIZE 0x50000000 /* 1.25G */
 #define DB_COUNT_MAX 10
 #define MAX_PATH 1024
 #define RPC_PATH "/json_rpc"
@@ -397,9 +397,6 @@ static bool abattoir;
 #ifdef HAVE_RX
 extern void rx_stop_mining();
 extern void rx_slow_hash_free_state();
-#else
-void rx_stop_mining(){}
-void rx_slow_hash_free_state(){}
 #endif
 
 #define JSON_GET_OR_ERROR(name, parent, type, client)                \
@@ -4025,6 +4022,8 @@ upstream_connect(void)
 
     upstream_event = bufferevent_socket_new(pool_base, -1,
             BEV_OPT_CLOSE_ON_FREE);
+    struct timeval tv = {config.idle_timeout, 0};
+    bufferevent_set_timeouts(upstream_event, &tv, &tv);
 
     if (bufferevent_socket_connect(upstream_event,
                 info->ai_addr, info->ai_addrlen) < 0)
@@ -4035,6 +4034,8 @@ upstream_connect(void)
 
     bufferevent_setcb(upstream_event,
             upstream_on_read, NULL, upstream_on_event, NULL);
+    bufferevent_setwatermark(upstream_event, EV_READ, 0, MAX_LINE*100);
+    bufferevent_setwatermark(upstream_event, EV_WRITE, 0, MAX_LINE*100);
     bufferevent_enable(upstream_event, EV_READ|EV_WRITE);
     evutil_make_socket_nonblocking(bufferevent_getfd(upstream_event));
 
@@ -4547,6 +4548,8 @@ p2pool_connect(client_t *client)
 
     client->p2pool_event = bufferevent_socket_new(pool_base, -1,
             BEV_OPT_CLOSE_ON_FREE);
+    struct timeval tv = {config.idle_timeout, 0};
+    bufferevent_set_timeouts(client->p2pool_event, &tv, &tv);
 
     if (bufferevent_socket_connect(client->p2pool_event,
                 info->ai_addr, info->ai_addrlen) < 0)
@@ -4557,6 +4560,8 @@ p2pool_connect(client_t *client)
 
     bufferevent_setcb(client->p2pool_event,
             p2pool_on_read, NULL, p2pool_on_event, client);
+    bufferevent_setwatermark(client->p2pool_event, EV_READ, 0, MAX_LINE*100);
+    bufferevent_setwatermark(client->p2pool_event, EV_WRITE, 0, MAX_LINE*100);
     bufferevent_enable(client->p2pool_event, EV_READ|EV_WRITE);
     evutil_make_socket_nonblocking(bufferevent_getfd(client->p2pool_event));
 
@@ -5964,7 +5969,8 @@ listener_on_accept(evutil_socket_t listener, short event, void *arg)
     bufferevent_setcb(bev,
             base == trusted_base ? trusted_on_read : miner_on_read,
             NULL, listener_on_error, arg);
-    bufferevent_setwatermark(bev, EV_READ, 0, MAX_LINE);
+    bufferevent_setwatermark(bev, EV_READ, 0, MAX_LINE*100);
+    bufferevent_setwatermark(bev, EV_WRITE, 0, MAX_LINE*100);
     const client_t *c = client_add(fd, &ss, bev, base == trusted_base);
     log_info("New %s [%s:%d] connected", type, c->host, c->port);
     log_info("Pool accounts: %d, workers: %d, hashrate: %"PRIu64,
@@ -6658,8 +6664,10 @@ cleanup(void)
     database_close();
     BN_free(base_diff);
     BN_CTX_free(bn_ctx);
+#ifdef HAVE_RX
     rx_stop_mining();
     rx_slow_hash_free_state();
+#endif
     pthread_mutex_destroy(&mutex_clients);
     pthread_mutex_destroy(&mutex_log);
     pthread_rwlock_destroy(&rwlock_tx);
