@@ -41,6 +41,13 @@ typedef struct payout_chart_t
     time_t payout_timestamp;
 } payout_chart_t;
 
+typedef struct total_payout_chart_t
+{
+    uint64_t total_payout_value;
+    time_t total_payout_timestamp;
+    uint64_t total_payout_count;
+} total_payout_chart_t;
+
 typedef struct hashrate_chart_t
 {
     uint64_t hashrate_value;
@@ -49,7 +56,8 @@ typedef struct hashrate_chart_t
 
 int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstddev, uint64_t *chart_array_len_ptr, hashrate_chart_t **chart_array_ptr,
     uint64_t *hrmean2, uint64_t *hrstddev2, uint64_t *chart_array_len_ptr2, hashrate_chart_t **chart_array_ptr2,
-    uint64_t *amnt, uint64_t *ts, uint64_t *chart_array_len_ptr3, payout_chart_t **chart_array_ptr3);
+    uint64_t *amnt, uint64_t *ts, uint64_t *chart_array_len_ptr3, payout_chart_t **chart_array_ptr3,
+    uint64_t *tamnt, uint64_t *tts, uint64_t *tcnt, uint64_t *chart_array_len_ptr4, total_payout_chart_t **chart_array_ptr4);
 
 uint64_t worker_count(const char *address);
 void worker_list(char *list_start, char *list_end, const char *address);

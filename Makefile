@@ -81,7 +81,6 @@ CPPDEFS = _GNU_SOURCE AUTO_INITIALIZE_EASYLOGGINGPP LOG_USE_COLOR
 
 ifeq ($(wildcard ${LIBRX}),${LIBRX})
   MONERO_LIBS += ${LIBRX}
-  CPPDEFS += HAVE_RX
 else
   ifneq ($(MAKECMDGOALS),clean)
 	$(warning Building without RandomX!)

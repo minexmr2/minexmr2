@@ -326,6 +326,13 @@ typedef struct payment_t
     char address[ADDRESS_MAX];
 } payment_t;
 
+typedef struct total_payment_t
+{
+    uint64_t total_amount;
+    time_t total_timestamp;
+    uint64_t total_count;
+} total_payment_t;
+
 typedef struct hashrate_t
 {
     uint64_t hashrate_value;
@@ -363,6 +370,7 @@ static MDB_dbi db_shares;
 static MDB_dbi db_blocks;
 static MDB_dbi db_balance;
 static MDB_dbi db_payments;
+static MDB_dbi db_payments_total;
 static MDB_dbi db_hashrates;
 static MDB_dbi db_hashrates_special;
 static MDB_dbi db_properties;
@@ -536,6 +544,14 @@ compare_payment(const MDB_val *a, const MDB_val *b)
 }
 
 static int
+compare_total_payment(const MDB_val *a, const MDB_val *b)
+{
+    const total_payment_t *va = (const total_payment_t*) a->mv_data;
+    const total_payment_t *vb = (const total_payment_t*) b->mv_data;
+    return (va->total_timestamp < vb->total_timestamp) ? -1 : 1;
+}
+
+static int
 compare_hashratets(const MDB_val *a, const MDB_val *b)
 {
     const hashrate_t *va = (const hashrate_t*) a->mv_data;
@@ -653,6 +669,13 @@ database_init(const char* data_dir)
         exit(rc);
     }
     flags = MDB_CREATE | MDB_DUPSORT | MDB_DUPFIXED;
+    if ((rc = mdb_dbi_open(txn, "payments_total", flags, &db_payments_total)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_fatal("%s", err);
+        exit(rc);
+    }
+    flags = MDB_CREATE | MDB_DUPSORT | MDB_DUPFIXED;
     if ((rc = mdb_dbi_open(txn, "hashrates", flags, &db_hashrates)) != 0)
     {
         err = mdb_strerror(rc);
@@ -695,6 +718,8 @@ database_init(const char* data_dir)
     mdb_set_dupsort(txn, db_blocks, compare_block);
     mdb_set_compare(txn, db_payments, compare_string);
     mdb_set_dupsort(txn, db_payments, compare_payment);
+    mdb_set_compare(txn, db_payments_total, compare_string);
+    mdb_set_dupsort(txn, db_payments_total, compare_total_payment);
     mdb_set_compare(txn, db_hashrates, compare_string);
     mdb_set_dupsort(txn, db_hashrates, compare_hashratets);
     mdb_set_compare(txn, db_hashrates_special, compare_string);
@@ -713,6 +738,7 @@ database_close(void)
     mdb_dbi_close(env, db_blocks);
     mdb_dbi_close(env, db_balance);
     mdb_dbi_close(env, db_payments);
+    mdb_dbi_close(env, db_payments_total);
     mdb_dbi_close(env, db_hashrates);
     mdb_dbi_close(env, db_hashrates_special);
     mdb_dbi_close(env, db_properties);
@@ -1232,12 +1258,42 @@ static int hr_update_in_database(MDB_txn *txn, MDB_cursor *cursor, const char *a
     if ((rc = mdb_cursor_put(cursor, &key, &val, 0)) != 0)
     {
         err = mdb_strerror(rc);
-        log_error("Error putting hashrate: %s", err);
+        log_error("Error putting hashrate_t: %s", err);
         mdb_txn_abort(txn);
         return rc;
     }
 
     log_info("leave addr = %s, hr = %"PRIu64, addr, hr);
+    return rc;
+}
+
+static int tp_update_in_database(MDB_txn *txn, MDB_cursor *cursor, const char *addr, time_t ts, uint64_t ta, uint64_t tc)
+{
+    log_info("entry addr = %s, ta = %"PRIu64, addr, ta);
+
+    int rc = 0;
+    char *err = NULL;
+
+    total_payment_t tp;
+    tp.total_timestamp = (uint64_t)ts;
+    tp.total_amount = ta;
+    tp.total_count = tc;
+
+    char addrbuf[ADDRESS_MAX];
+    memset(addrbuf, 0, ADDRESS_MAX);
+    strcpy(addrbuf, addr);
+
+    MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
+    MDB_val val = {sizeof(total_payment_t), (void*)&tp};
+    if ((rc = mdb_cursor_put(cursor, &key, &val, 0)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("Error putting total_payment_t: %s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    log_info("leave addr = %s, ta = %"PRIu64, addr, ta);
     return rc;
 }
 
@@ -2909,6 +2965,7 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
     char *err = NULL;
     MDB_txn *txn = NULL;
     MDB_cursor *cursor = NULL;
+    MDB_cursor *cursor_total = NULL;
     MDB_txn *parent = NULL;
 
     if ((rc = mdb_txn_begin(env, NULL, 0, &parent)) != 0)
@@ -3021,13 +3078,28 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         json_object_put(root);
         return;
     }
+    if ((rc = mdb_cursor_open(txn, db_payments_total, &cursor_total)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        mdb_txn_abort(parent);
+        json_object_put(root);
+        return;
+    }
 
     time_t now = time(NULL);
     p = (payment_t*) gbag_first(bag_pay);
 
+    uint64_t acc_ta = 0;
+    uint64_t acc_tc = 0;
+
     while((p = gbag_next(bag_pay, 0)))
     {
         p->timestamp = now;
+
+        acc_ta += p->amount;
+        acc_tc += 1;
 
         char addrbuf[ADDRESS_MAX];
         memset(addrbuf, 0, ADDRESS_MAX);
@@ -3046,7 +3118,12 @@ rpc_on_wallet_transferred(const char* data, rpc_callback_t *callback)
         }
     }
 
+    rc = tp_update_in_database(txn, cursor_total, "pool", now, acc_ta, acc_tc);
+    if (rc != 0)
+        return rc;
+
     mdb_cursor_close(cursor);
+    mdb_cursor_close(cursor_total);
 
     if ((rc = mdb_txn_commit(txn)) != 0)
     {
@@ -3154,6 +3231,93 @@ static int _get_last_payout(MDB_txn *txn, MDB_cursor *cursor, const char *addres
 
                 cur_ptr->payout_timestamp = p1->timestamp;
                 cur_ptr->payout_value = p1->amount;
+                ++cur_ptr;
+                ++(*chart_array_len_ptr);
+            }
+
+            if ((rc != 0) && (rc != MDB_NOTFOUND))
+            {
+                err = mdb_strerror(rc);
+                log_error("%s", err);
+                mdb_txn_abort(txn);
+                return rc;
+            }
+
+            log_info("success address = %s, *chart_array_len_ptr = %"PRIu64, address, *chart_array_len_ptr);
+            return 0;
+        }
+    }
+
+    log_warn("MDB_NOTFOUND address = %s", address);
+    return MDB_NOTFOUND;
+}
+
+static int _get_last_total_payout(MDB_txn *txn, MDB_cursor *cursor, const char *address, uint64_t *amnt, uint64_t *ts, uint64_t *cnt, uint64_t *chart_array_len_ptr, total_payout_chart_t **chart_array_ptr)
+{
+    log_info("entry address = %s", address);
+    int rc = 0;
+    char *err = NULL;
+
+    char addrbuf[ADDRESS_MAX];
+    memset(addrbuf, 0, ADDRESS_MAX);
+    strcpy(addrbuf, address);
+
+    MDB_val key = {ADDRESS_MAX, (void*)addrbuf};
+    MDB_val val;
+
+    rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
+
+    if ((rc != 0) && (rc != MDB_NOTFOUND))
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
+
+    if (rc == 0)
+    {
+        rc = mdb_cursor_get(cursor, &key, &val, MDB_LAST_DUP);
+        if ((rc != 0) && (rc != MDB_NOTFOUND))
+        {
+            err = mdb_strerror(rc);
+            log_error("%s", err);
+            mdb_txn_abort(txn);
+            return rc;
+        }
+        if (rc == 0)
+        {
+            total_payment_t *p = (total_payment_t *)val.mv_data;
+
+            *amnt = p->total_amount;
+            *ts = p->total_timestamp;
+            *cnt = p->total_count;
+
+            *chart_array_len_ptr = 1;
+            *chart_array_ptr = (total_payout_chart_t *)malloc(sizeof(total_payout_chart_t) * 20);
+            if (*chart_array_ptr == NULL)
+            {
+                log_error("malloc");
+                mdb_txn_abort(txn);
+                return -12346;
+            }
+            total_payout_chart_t *cur_ptr = *chart_array_ptr;
+
+            cur_ptr->total_payout_timestamp = *ts;
+            cur_ptr->total_payout_value = *amnt;
+            cur_ptr->total_payout_count = *cnt;
+            ++cur_ptr;
+
+            while ((rc = mdb_cursor_get(cursor, &key, &val, MDB_PREV_DUP)) == 0)
+            {
+                if (*chart_array_len_ptr >= 10)
+                    break;
+
+                total_payment_t *p1 = (total_payment_t *)val.mv_data;
+
+                cur_ptr->total_payout_timestamp = p1->total_timestamp;
+                cur_ptr->total_payout_value = p1->total_amount;
+                cur_ptr->total_payout_count = p1->total_count;
                 ++cur_ptr;
                 ++(*chart_array_len_ptr);
             }
@@ -3299,7 +3463,8 @@ NO_CHART_DATA:
 
 int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstddev, uint64_t *chart_array_len_ptr, hashrate_chart_t **chart_array_ptr,
     uint64_t *hrmean2, uint64_t *hrstddev2, uint64_t *chart_array_len_ptr2, hashrate_chart_t **chart_array_ptr2,
-    uint64_t *amnt, uint64_t *ts, uint64_t *chart_array_len_ptr3, payout_chart_t **chart_array_ptr3)
+    uint64_t *amnt, uint64_t *ts, uint64_t *chart_array_len_ptr3, payout_chart_t **chart_array_ptr3,
+    uint64_t *tamnt, uint64_t *tts, uint64_t *tcnt, uint64_t *chart_array_len_ptr4, total_payout_chart_t **chart_array_ptr4)
 {
     int rc = 0;
     char *err = NULL;
@@ -3307,6 +3472,7 @@ int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstd
     MDB_cursor *cursor = NULL;
     MDB_cursor *cursor_special = NULL;
     MDB_cursor *cursor_payments = NULL;
+    MDB_cursor *cursor_payments_total = NULL;
 
     if ((rc = mdb_txn_begin(env, NULL, MDB_RDONLY, &txn)) != 0)
     {
@@ -3335,6 +3501,13 @@ int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstd
         mdb_txn_abort(txn);
         return rc;
     }
+    if ((rc = mdb_cursor_open(txn, db_payments_total, &cursor_payments_total)) != 0)
+    {
+        err = mdb_strerror(rc);
+        log_error("%s", err);
+        mdb_txn_abort(txn);
+        return rc;
+    }
 
     rc = _get_24h_meanstddev_hr(txn, cursor, address, hrmean, hrstddev, chart_array_len_ptr, chart_array_ptr);
     if ((rc != 0) && (rc != MDB_NOTFOUND))
@@ -3348,9 +3521,14 @@ int get_24h_meanstddev_hr(const char *address, uint64_t *hrmean, uint64_t *hrstd
     if ((rc != 0) && (rc != MDB_NOTFOUND))
         return rc;
 
+    rc = _get_last_total_payout(txn, cursor_payments_total, "pool", tamnt, tts, tcnt, chart_array_len_ptr4, chart_array_ptr4);
+    if ((rc != 0) && (rc != MDB_NOTFOUND))
+        return rc;
+
     mdb_cursor_close(cursor);
     mdb_cursor_close(cursor_special);
     mdb_cursor_close(cursor_payments);
+    mdb_cursor_close(cursor_payments_total);
     mdb_txn_abort(txn);
     return 0;
 }

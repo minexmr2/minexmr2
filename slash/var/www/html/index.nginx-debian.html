@@ -376,7 +376,7 @@ margin-top: 0px;
   --link-color: #36a;
   --link-color-hover: #39f;
   --slider2-color: #fff;
-  --block-red-color: #a36;
+  --block-red-color: #a15;
 }
 /* Dark Mode Theme */
 [data-theme="dark"] {
@@ -393,7 +393,7 @@ margin-top: 0px;
   --link-color: #39d;
   --link-color-hover: #3cf;
   --slider2-color: #ccc;
-  --block-red-color: #903;
+  --block-red-color: #904;
 }
 
 .container {
@@ -501,6 +501,10 @@ input:checked + .slider:before {
   text-align: center;
 }
 
+[contenteditable=true]:empty:not(:focus):before {
+    content:attr(placeholder)
+}
+
 
 
 @media only screen and (min-width: 768px) and (max-width: 1280px) {
@@ -594,6 +598,10 @@ header.story_red_block {
   line-height: 12px;
 }
 
+table.stats td#miner_lp, table.stats td#total_lp {
+    line-height: 0.85em;
+}
+
 }
 
 
@@ -649,6 +657,10 @@ header.story_red_block {
   line-height: 10px;
 }
 
+table.stats td#miner_lp, table.stats td#total_lp {
+    line-height: 0.85em;
+}
+
 }
 </style>
 
@@ -700,6 +712,8 @@ header.story_red_block {
             <tr style="display: none;"><th>Pool SSL port:</th><td id="pool_ssl_port"></td></tr>
             <tr style="display: none;"><th>Allow self-select:</th><td id="allow_self_select"></td></tr>
             <tr><th>Miners connected:</th><td id="connected_miners"></td></tr>
+            <tr><th>Last payout:</th><td id="total_lp">0.010098520999&nbsp;XMR @ 2023-04-06UTC08:21:09 to&nbsp;1&nbsp;miners</td></tr>
+            <tr><td colspan="2"><div id="total_lp_10" style="width:100%;font-size:10px;line-height:10px;text-align:center;">5435346</div></td></tr>
         </table>
       </div>
     </div>
@@ -753,7 +767,7 @@ header.story_red_block {
             <tr class="miner"><th>Pending balance:</th><td id="miner_balance"></td></tr>
             <tr class="miner"><th>Last payout:</th><td id="miner_lp"></td></tr>
             <tr class="miner"><td colspan="2"><div id="miner_lp_10" style="width:100%;font-size:10px;line-height:10px;text-align:center;">5435346</div></td></tr>
-            <tr><th>Miner address:</th><td id="address" contenteditable="true"></td></tr>
+            <tr><th>Miner address:</th><td id="address" contenteditable="true" placeholder="Copy-paste an XMR address, then blur out..."></td></tr>
         </table>
       </div>
     </div>
@@ -777,7 +791,9 @@ header.story_red_block {
         <p>
             ...And your valid Monero address (4... or 8...).
             That's all you need to start mining. No registration, no cookies, no personal data collection.
-            Your account will be created automatically on first share accepted. You receive payments each time your pending balance grows above 0.01XMR.
+            <b>No pain with self-maintain your full-fledged p2pool/monerod node</b>
+            (<a href="https://github.com/hinto-janai/gupax" target="_blank">gupax</a> helps but can't avoid all the headache).
+            Your account will be created automatically on a first share accepted. You receive payments each time your pending balance grows above 0.01XMR threshold.
             You can use any Monero miner.
         </p><p>
             Currently <a href="https://github.com/xmrig/xmrig" target="_blank">xmrig</a> is the only tested, both NoTLS and TLS connection modes.
@@ -820,19 +836,29 @@ header.story_red_block {
     <div class="episode__number">Killer Feature 3</div>
     <div class="episode__content">
       <div class="story">
-        <header>No more dust payments like 0.0003XMR from p2pool and hence huge spending fees</header>
+        <header>No more headache from "p2pool vs p2pool mini" dilemma</header>
         <p>
-            Main problem of decentralized p2pool is its reward algorithm generating enormous amount of dust payments for not strong-enough miners.
-            If they try to spend p2pool rewards, transaction generation takes a lot of time and can fail due to 198-inputs limit.
-            Furthermore, even if transaction is generated successfully, a HUGE fee is subtracted from a miner's wallet balance.
+            Although dust payments like 0.0003XMR chunks from p2pool mainchain have gone since
+            p2pool <a href="https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/" target="_blank">hard-fork</a>
+            , end-user pain with p2pool remains.
+            P2pool&nbsp;mini, from one hand, has low hashrate that forces low hashrate miners to frustrate by waiting payouts up to few days.
+            Also, p2pool&nbsp;mini does not completely save miners from dust payments. Thus, low hashrate miners often consider to switch back to p2pool mainchain.
+            P2pool mainchain, from other hand, <b>for low hashrate miners</b>, results in rare, irregular payouts (though in relatively large chunks like 0.001XMR after hard-fork).
+            That's because PPLNS window of
+            p2pool main has significantly shrunk after hard-fork. As a result, a whole class of questions like "I mine on p2pool (mini) for a long time, but still no payouts"
+            constantly appears on r/MoneroMining (
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12dr103/no_payout/" target="_blank">1</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12e3sy9/how_much_was_your_last_p2pool_share_worth/" target="_blank">2</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12dah8g/question_about_p2pool/" target="_blank">3</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12cpr75/p2pool_finding_shares_but_no_payout/" target="_blank">4</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12ajgq6/minip2pool_no_shares_issue/" target="_blank">5</a>
+            ).
         </p>
         <p>
-            MINEXMR2 accumulates all the dust payments from p2pool for you, and sends you 0.01XMR chunks, allowing to easily spend your balance.
-            Meanwhile you get legendary Monero ultra-tiny fees like 0.00005XMR.
-        </p>
-        <p>
-            We hope 0.01XMR is useful for most users. First, 0.01XMR payouts are being sent often enough, and you can't lose more than 0.01XMR in a worst case.
-            If something goes wrong, please immediately email to <b>minexmr2@tutanota.com</b> for manual payouts to you.
+            MINEXMR2 pool solves the "p2pool vs p2pool mini" dilemma. In a cost of trust in our pool doesn't steal your pending 0.01XMR balance (that is roughly worth $1.5)
+            you can always observe true regular payouts each time your balance exceeds the 0.01XMR threshold. And, more important,
+            you can always monitor the updates to your pending balance before it reaches 0.01XMR. Each update is coming every moment MINEXMR2 receives a payment from a p2pool
+            instance inside, i.e. 2-3 times per hour. <b>In a nutshell, you can check whether your miner is properly configured and functioning within just a hour or two!</b>
         </p>
       </div>
     </div>
@@ -856,7 +882,7 @@ header.story_red_block {
             If you found a bug or have a proposal, you can create a
             <a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a>/
             <a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a> issue.
-            <b>We plan to add miner's hashrate charts, payment history list and many other useful features</b>.
+            <b>We have implemented the miner's hashrate charts, p2pool hashrate charts, miner's payment history, pool total payment history and many other useful features</b>.
         </p>
       </div>
     </div>
@@ -874,8 +900,8 @@ header.story_red_block {
         <p>
             Other Monero mining pools based on p2pool inside:
             <ul>
-            <li><a href="https://pool.aterx.com" target="_blank">pool.aterx.com</a>, typical hashrate 800KH/s, uses p2pool mini, payment threshold 0.005XMR, payouts every Sunday</li>
-            <li><a href="https://www.minerno.de" target="_blank">www.minerno.de</a>, typical hashrate 40KH/s, uses p2pool mini, payment threshold 0.0004XMR, payouts on demand, 0% fees, <a href="https://minerno.de/api/stats/" target="_blank">stats API here</a>.</li>
+            <li><a href="https://pool.aterx.com" target="_blank">pool.aterx.com</a>, typical hashrate 1.37MH/s, uses p2pool mini, payment threshold 0.005XMR, payouts every Sunday</li>
+            <li><a href="https://www.minerno.de" target="_blank">www.minerno.de</a>, typical hashrate 90KH/s, uses p2pool mini, payment threshold 0.0004XMR, payouts on demand, 0% fees, <a href="https://minerno.de/api/stats/" target="_blank">stats API here</a>.</li>
             </ul>
         </p>
         <p>
@@ -1024,6 +1050,10 @@ function formatXMR(t) {
     return (t/1E12).toFixed(12) + 'XMR';
 }
 
+function formatCNT(t) {
+    return t + '&nbsp;miners';
+}
+
 function format_lp_10_arr(mlpts10_arr_x, mlpts10_arr_y)
 {
     if (mlpts10_arr_x.length != mlpts10_arr_y.length)
@@ -1032,7 +1062,22 @@ function format_lp_10_arr(mlpts10_arr_x, mlpts10_arr_y)
     var mlpts10_arr_y_xmr = mlpts10_arr_y.map(formatXMR)
     var result = "";
     for (var i = 0; i < mlpts10_arr_x_date.length; ++i) {
-        result += mlpts10_arr_y_xmr[i] + '&nbsp;@&nbsp;' + mlpts10_arr_x_date[i];
+        result += mlpts10_arr_y_xmr[i] + '@' + mlpts10_arr_x_date[i];
+        result += (i < (mlpts10_arr_x_date.length - 1)) ? ', ' : '.';
+    }
+    return result;
+}
+
+function format_total_lp_10_arr(mlpts10_arr_x, mlpts10_arr_y, mlpts10_arr_z)
+{
+    if ((mlpts10_arr_x.length != mlpts10_arr_y.length) || (mlpts10_arr_x.length != mlpts10_arr_z.length))
+        return "";
+    var mlpts10_arr_x_date = mlpts10_arr_x.map(formatDateUTC);
+    var mlpts10_arr_y_xmr = mlpts10_arr_y.map(formatXMR)
+    var mlpts10_arr_z_cnt = mlpts10_arr_z.map(formatCNT)
+    var result = "";
+    for (var i = 0; i < mlpts10_arr_x_date.length; ++i) {
+        result += mlpts10_arr_y_xmr[i] + '@' + mlpts10_arr_x_date[i] + '&nbsp;to&nbsp;' + mlpts10_arr_z_cnt[i];
         result += (i < (mlpts10_arr_x_date.length - 1)) ? ', ' : '.';
     }
     return result;
@@ -1043,6 +1088,13 @@ var mlpts10_arr_y = [11300036199,11200006858,10100028026,10900008806,11000042626
 
 var elMinerLastPayouts10 = document.querySelector("#"+"miner_lp_10");
 elMinerLastPayouts10.innerHTML = format_lp_10_arr(mlpts10_arr_x, mlpts10_arr_y);
+
+var total10_arr_x = [1680769269];
+var total10_arr_y = [10098520999];
+var total10_arr_z = [1];
+
+var elTotalLastPayouts10 = document.querySelector("#"+"total_lp_10");
+elTotalLastPayouts10.innerHTML = format_total_lp_10_arr(total10_arr_x, total10_arr_y, total10_arr_z);
 
 var trace1 = {
     x: [0+tmpNow0, 0+tmpNow1, 0+tmpNow2].map(formatDate),
@@ -1353,13 +1405,27 @@ if (xhr.status === 200) {
         var mlpts = stats["miner_last_payout_ts"];
 
         var elMinerLastPayout = document.querySelector("#"+"miner_lp");
-        elMinerLastPayout.innerHTML = mlpval + " XMR @ " + format_last_time(mlpts);
+        elMinerLastPayout.innerHTML = mlpval + "&nbsp;XMR @ " + format_last_time(mlpts);
 
         mlpts10_arr_x = stats["payout_chart_x"];
         mlpts10_arr_y = stats["payout_chart_y"];
 
         var elMinerLastPayouts10 = document.querySelector("#"+"miner_lp_10");
         elMinerLastPayouts10.innerHTML = format_lp_10_arr(mlpts10_arr_x, mlpts10_arr_y);
+
+        var totlpval = stats["total_last_payout"];
+        var totlpts = stats["total_last_payout_ts"];
+        var totlpcnt = stats["total_last_payout_count"];
+
+        var elTotalLastPayout = document.querySelector("#"+"total_lp");
+        elTotalLastPayout.innerHTML = totlpval + "&nbsp;XMR @ " + format_last_time(totlpts) + " to&nbsp;" + totlpcnt + "&nbsp;miners";
+
+        total10_arr_x = stats["total_payout_chart_x"];
+        total10_arr_y = stats["total_payout_chart_y"];
+        total10_arr_z = stats["total_payout_chart_z"];
+
+        var elTotalLastPayouts10 = document.querySelector("#"+"total_lp_10");
+        elTotalLastPayouts10.innerHTML = format_total_lp_10_arr(total10_arr_x, total10_arr_y, total10_arr_z);
 
         var mhmean24h = stats["miner_hashrate_mean24h"];
 
