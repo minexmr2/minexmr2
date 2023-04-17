@@ -1,6 +1,6 @@
 # MINEXMR2: a Monero mining pool with regular payouts from p2pool inside, 100% pure open source
 
-⚡ Apr 10 2023: [minexmr2.com](https://minexmr2.com) now shows total payouts to the miners, to ensure that pool is functioning properly.
+⚡ Apr 17 2023: [minexmr2.com](https://minexmr2.com) upgraded to the latest p2pool v3.2 and monerod v0.18.2.2.
 
 ## Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider for frequent payouts (approx. 2 times/hour) 👋
 
@@ -22,6 +22,8 @@ If you mine with us, you get your pending balance update as regular as p2pool fi
 Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
+
+⚡ Apr 17 2023: [minexmr2.com](https://minexmr2.com) upgraded to the latest p2pool v3.2 and monerod v0.18.2.2.
 
 ⚡ Apr 10 2023: [minexmr2.com](https://minexmr2.com) now shows total payouts to the miners, to ensure that pool is functioning properly.
 

@@ -330,7 +330,7 @@ send_json_stats(struct evhttp_request *req, void *arg)
         str_json_pool = NULL;
     }
 
-    str_json_pool = load_file_as_c_string("/home/p2pool/stats/local/stats");
+    str_json_pool = load_file_as_c_string("/home/p2pool/stats/local/stratum");
 
     if (str_json_pool)
     {

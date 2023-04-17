@@ -686,7 +686,7 @@ table.stats td#miner_lp, table.stats td#total_lp {
 
 <div style="margin-top: 20px; margin-bottom: 20px;">
 <h2 class="font_menu special"><img src="minexmr2-header3.svg" class="inline_header2" alt="MINEXMR2 Monero mining pool header icon 2"/><span>MINEXMR2</span></h2>
-<h3 class="font_menu special">First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts<br/>(approx. <span class="stats_style" id="payout_freq">0 times/hour</span>)</h3>
+<h3 class="font_menu special">First open-source Monero mining pool using decentralized <a href="https://github.com/SChernykh/p2pool" target="_blank">p2pool</a> as a hashrate-liquidity provider for frequent payouts<br/>(approx. <span class="stats_style" id="payout_freq">0 times/hour</span>)</h3>
 <h4 class="font_menu special">Established 2022-09-15 UTC&nbsp;10:00</h4>
 <h5 class="font_menu special">The name MINEXMR2 is inspired by departed old-school MINEXMR pool and conceptual decentralized p2pool. In no way this pool is related to original MINEXMR</h5>
 </div>
@@ -723,13 +723,13 @@ table.stats td#miner_lp, table.stats td#total_lp {
     <div class="episode__content">
       <div id="p2pool_plot_td" class="story">
         <header>P2Pool Statistics</header>
-        <header class="story_red_block">(Since 2023-03-11 UTC&nbsp;10:00
-        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.1" target="_blank">p2pool&nbsp;v3.1</a>,
-        <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.0" target="_blank">monerod&nbsp;v0.18.2.0</a>
-        ready for
+        <header class="story_red_block">(Since 2023-04-17 UTC&nbsp;13:00
+        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.2" target="_blank">p2pool&nbsp;v3.2</a>,
+        <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.2" target="_blank">monerod&nbsp;v0.18.2.2</a>
+        ;
         Mar&nbsp;18&nbsp;2023
         p2pool (not monero)
-        <a href="https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/" target="_blank">hard fork</a>)</header>
+        <a href="https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/" target="_blank">hard fork</a> passed successfully)</header>
         <table class="stats">
             <tr><th>Hashrate:</th><td id="p2pool_hashrate">service unavailable</td></tr>
             <tr><th>Mean hashrate 24h:</th><td id="p2pool_hashrate_24h"></td></tr>
@@ -815,7 +815,7 @@ table.stats td#miner_lp, table.stats td#total_lp {
         <header>Effective hashrate provided by decentralized p2pool makes your payouts regular</header>
         <p>
             No more tears about pool's hashrate and how often new block is being found. Payments from
-            <a href="https://github.com/SChernykh/p2pool" target="_blank">p2pool</a>
+            p2pool
             inside are being received on every block found by
             p2pool
             with its current hashrate.
@@ -851,7 +851,11 @@ table.stats td#miner_lp, table.stats td#total_lp {
             <a href="https://www.reddit.com/r/MoneroMining/comments/12e3sy9/how_much_was_your_last_p2pool_share_worth/" target="_blank">2</a>,
             <a href="https://www.reddit.com/r/MoneroMining/comments/12dah8g/question_about_p2pool/" target="_blank">3</a>,
             <a href="https://www.reddit.com/r/MoneroMining/comments/12cpr75/p2pool_finding_shares_but_no_payout/" target="_blank">4</a>,
-            <a href="https://www.reddit.com/r/MoneroMining/comments/12ajgq6/minip2pool_no_shares_issue/" target="_blank">5</a>
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12ajgq6/minip2pool_no_shares_issue/" target="_blank">5</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12ht42l/660_and_counting_p2pool_mini/" target="_blank">6</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12i0mi0/i_was_using_p2pool_but_i_switched_to_moneroocean/" target="_blank">7</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12kdnnu/switch_from_p2pool_mini_to_main/" target="_blank">8</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12lvvaa/gupax_p2pool_synchronization_help_a_newbie/" target="_blank">9</a>
             ).
         </p>
         <p>
@@ -900,7 +904,7 @@ table.stats td#miner_lp, table.stats td#total_lp {
         <p>
             Other Monero mining pools based on p2pool inside:
             <ul>
-            <li><a href="https://pool.aterx.com" target="_blank">pool.aterx.com</a>, typical hashrate 1.37MH/s, uses p2pool mini, payment threshold 0.005XMR, payouts every Sunday</li>
+            <li><a href="https://www.aterx.com/pool/" target="_blank">www.aterx.com</a>, typical hashrate 1.37MH/s, uses p2pool mini, payment threshold 0.005XMR, payouts every Sunday</li>
             <li><a href="https://www.minerno.de" target="_blank">www.minerno.de</a>, typical hashrate 90KH/s, uses p2pool mini, payment threshold 0.0004XMR, payouts on demand, 0% fees, <a href="https://minerno.de/api/stats/" target="_blank">stats API here</a>.</li>
             </ul>
         </p>
@@ -970,10 +974,9 @@ table.stats td#miner_lp, table.stats td#total_lp {
     <div class="episode__content">
       <div class="story">
         <p>
-        MINEXMR2 pool is ready to Monero upcoming network upgrade (fork) near
-        <a href="https://xmr.noctism.com" target="_blank">Aug&nbsp;12&nbsp;2022</a>.
+        Monero network upgrade (fork) near
+        <a href="https://xmr.noctism.com" target="_blank">Aug&nbsp;12&nbsp;2022</a> passed successfully.
         Note: mining software will not be affected.
-        <b>Update: hard-fork has been done successfully</b>.
         </p>
       </div>
     </div>
@@ -984,8 +987,8 @@ table.stats td#miner_lp, table.stats td#total_lp {
         <p>Pool and site implementation of minexmr2.com is open&nbsp;source and mirrored on both
         <a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a>,
         <a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a>. It is built against Monero
-        <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.0" target="_blank">monerod&nbsp;v0.18.2.0</a> and custom-patched
-        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.1" target="_blank">p2pool&nbsp;v3.1</a>.
+        <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.2" target="_blank">monerod&nbsp;v0.18.2.2</a> and custom-patched
+        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.2" target="_blank">p2pool&nbsp;v3.2</a>.
         </p>
       </div>
     </div>
