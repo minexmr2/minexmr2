@@ -276,6 +276,9 @@ send_json_stats(struct evhttp_request *req, void *arg)
 #ifdef P2POOL
     uint64_t p2h = 0;
     uint64_t p2h_hashrate_15m = 0;
+    uint64_t p2p_incoming = 0;
+    uint64_t p2p_outcoming = 0;
+
     const char* str_json_pool = load_file_as_c_string("/home/p2pool/stats/pool/stats");
 
     if (str_json_pool)
@@ -345,6 +348,40 @@ send_json_stats(struct evhttp_request *req, void *arg)
                 if (json_object_is_type(hashrate_15m, json_type_int))
                 {
                     p2h_hashrate_15m = (uint64_t)json_object_get_int64(hashrate_15m);
+                }
+            }
+
+            json_object_put(root);
+        }
+        free(str_json_pool);
+        str_json_pool = NULL;
+    }
+
+    str_json_pool = load_file_as_c_string("/home/p2pool/stats/local/p2p");
+
+    if (str_json_pool)
+    {
+        json_object *root = json_tokener_parse(str_json_pool);
+        if (root)
+        {
+
+            json_object *connections = NULL;
+            json_object_object_get_ex(root, "connections", &connections);
+            if (connections)
+            {
+                if (json_object_is_type(connections, json_type_int))
+                {
+                    p2p_outcoming = (uint64_t)json_object_get_int64(connections);
+                }
+            }
+
+            json_object *incoming_connections = NULL;
+            json_object_object_get_ex(root, "incoming_connections", &incoming_connections);
+            if (incoming_connections)
+            {
+                if (json_object_is_type(incoming_connections, json_type_int))
+                {
+                    p2p_incoming = (uint64_t)json_object_get_int64(incoming_connections);
                 }
             }
 
@@ -494,6 +531,8 @@ send_json_stats(struct evhttp_request *req, void *arg)
 #ifdef P2POOL
             "\"p2pool_hashrate\":%"PRIu64","
             "\"p2pool_hashrate_local\":%"PRIu64","
+            "\"p2pool_incoming_connections\":%"PRIu64","
+            "\"p2pool_outcoming_connections\":%"PRIu64","
 #endif
             "\"round_hashes\":%"PRIu64","
             "\"network_hashrate\":%"PRIu64","
@@ -536,6 +575,8 @@ send_json_stats(struct evhttp_request *req, void *arg)
 #ifdef P2POOL
             p2h,
             p2h_hashrate_15m,
+            p2p_incoming,
+            p2p_outcoming,
 #endif
             rh, nh, nd, height, ltf, lbf, lbfh, pbf,
             context->payment_threshold, context->pool_fee,

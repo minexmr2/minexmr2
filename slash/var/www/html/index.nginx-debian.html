@@ -735,6 +735,8 @@ table.stats td#miner_lp, table.stats td#total_lp {
             <tr><th>Mean hashrate 24h:</th><td id="p2pool_hashrate_24h"></td></tr>
             <tr><td colspan="2"><div id="p2pool_plot" style="width:100%;"></div></td></tr>
             <tr><th>Local hashrate:</th><td id="p2pool_hashrate_local"></td></tr>
+            <tr><th>Incoming connections:</th><td id="p2pool_incoming_connections"></td></tr>
+            <tr><th>Outcoming connections:</th><td id="p2pool_outcoming_connections"></td></tr>
             <tr><th>Blocks found:</th><td id="pool_blocks_found"></td></tr>
             <tr><th>Last block found:</th><td id="last_block_found"></td></tr>
             <tr><th>Last block height:</th><td id="last_block_found_height"></td></tr>
@@ -1439,6 +1441,14 @@ if (xhr.status === 200) {
 
         var elP2PHRMean24h = document.querySelector("#"+"p2pool_hashrate_24h");
         elP2PHRMean24h.innerHTML = format_hashrate(p2phmean24h);
+
+        var p2p_incoming_connections = stats["p2pool_incoming_connections"];
+        var el_p2p_incoming_connections = document.querySelector("#"+"p2pool_incoming_connections");
+        el_p2p_incoming_connections.innerHTML = "" + (p2p_incoming_connections);
+
+        var p2p_outcoming_connections = stats["p2pool_outcoming_connections"];
+        var el_p2p_outcoming_connections = document.querySelector("#"+"p2pool_outcoming_connections");
+        el_p2p_outcoming_connections.innerHTML = "" + (p2p_outcoming_connections);
 
         data[0].x = stats["miner_chart_x"].map(formatDate);
         data[0].y = stats["miner_chart_y"];
