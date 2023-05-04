@@ -149,7 +149,7 @@ img.inline_header2 {
     color: var(--text-th-color);
 }
 
-p.story_red {
+p.story_red, header.story_red {
     background-color: var(--block-red-color);
     color: #fff;
 }
@@ -789,20 +789,32 @@ table.stats td#miner_lp, table.stats td#total_lp {
     <div class="episode__number">Killer Feature 1</div>
     <div class="episode__content">
       <div class="story">
-        <header>Stratum pool domain: <b>minexmr2.com</b>.<br/>Pool port: <b>4444</b>.<br/>TLS pool port: <b>8443</b></header>
+        <header class="story_red">Quick start domain (stratum): <b>minexmr2.com</b>.<br/>Pool port: <b>4444</b>.<br/>TLS pool port: <b>8443</b></header>
         <p>
             ...And your valid Monero address (4... or 8...).
-            That's all you need to start mining. No registration, no cookies, no personal data collection.
+            That's all you need to start mining. No registration, no cookies, no 3rd party scripts loaded from other domains, no personal data collection.
             <b>No pain with self-maintain your full-fledged p2pool/monerod node</b>
             (<a href="https://github.com/hinto-janai/gupax" target="_blank">gupax</a> helps but can't avoid all the headache).
-            Your account will be created automatically on a first share accepted. You receive payments each time your pending balance grows above 0.01XMR threshold.
+            Your account will be created automatically on a first share accepted. You receive payments each time your pending balance grows above 0.01XMR threshold
+            (today worth just $1.5-1.6).
             You can use any Monero miner.
-        </p><p>
+        </p>
+        <p>
             Currently <a href="https://github.com/xmrig/xmrig" target="_blank">xmrig</a> is the only tested, both NoTLS and TLS connection modes.
             Here are ready to use xmrig config files. Just place one of it
             in the same directory with xmrig executable and run it. <b>Do not forget to replace XMR address in
             <a href="xmrig-notls/config.json" target="_blank">config-notls</a> or <a href="xmrig-tls/config.json" target="_blank">config-tls</a>.
             to your one</b>. Or, if you just want to donate, don't change anything.
+        </p>
+        <p>Pool minexmr2.com is especially recommended for those miners who are connected to
+        <a href="https://miningpoolstats.stream/monero" target="_blank">top 3</a> mining pools by hashrate
+        to fight against <a href="https://bitcointalk.org/index.php?topic=5416452.new#new" target="_blank">Curse</a> of
+        <a href="https://en.wikipedia.org/wiki/Rank%E2%80%93size_distribution" target="_blank">Rank-size distribution</a>.
+        Most of the time, top 3 pools by hashrate are
+        <a href="https://xmr.nanopool.org/" target="_blank">Nanopool</a>,
+        <a href="https://supportxmr.com/" target="_blank">SupportXMR</a>,
+        <a href="https://monero.hashvault.pro/" target="_blank">Hashvault.pro</a>.
+        If you are connected to one of them, switch to minexmr2.com immediately!
         </p>
         <p class="story_red">
             Support email if something goes wrong (especially with automatic payouts): <b>minexmr2@tutanota.com</b>.
@@ -824,12 +836,16 @@ table.stats td#miner_lp, table.stats td#total_lp {
             All the billing is accurately performed by MINEXMR2 pool based on PPLNS concept,
             thus your pending balance is being updated on every block found by p2pool too.
             Each time it reaches 0.01XMR, automatic payout to you will be performed.
-        </p><p>
+        </p>
+        <p>
             Consider, for example, typical p2pool's hashrate is 145Mh/s, network hashrate is 2.67GH/s,
             average number of blocks found by p2pool is 1.62&nbsp;blocks&nbsp;per&nbsp;hour.
             Thus, you will receive your pending balance updates nearly 1.62&nbsp;times&nbsp;per&nbsp;hour, amounts are proportional to your miner's hashrate (PPLNS).
             Because each time your balance reaches 0.01XMR you receive the payment, if your own hashrate is great enough,
             you can receive payouts as often as approx. 1.62&nbsp;times&nbsp;per&nbsp;hour.
+        </p>
+        <p class="story_red">
+            In few words: despite relatively low this pool proper hashrate, its payout frequency is as high as does p2pool main chain provide!
         </p>
       </div>
     </div>
@@ -857,7 +873,8 @@ table.stats td#miner_lp, table.stats td#total_lp {
             <a href="https://www.reddit.com/r/MoneroMining/comments/12ht42l/660_and_counting_p2pool_mini/" target="_blank">6</a>,
             <a href="https://www.reddit.com/r/MoneroMining/comments/12i0mi0/i_was_using_p2pool_but_i_switched_to_moneroocean/" target="_blank">7</a>,
             <a href="https://www.reddit.com/r/MoneroMining/comments/12kdnnu/switch_from_p2pool_mini_to_main/" target="_blank">8</a>,
-            <a href="https://www.reddit.com/r/MoneroMining/comments/12lvvaa/gupax_p2pool_synchronization_help_a_newbie/" target="_blank">9</a>
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12lvvaa/gupax_p2pool_synchronization_help_a_newbie/" target="_blank">9</a>,
+            <a href="https://www.reddit.com/r/MoneroMining/comments/12ynqqi/p2pool_mini_is_getting_no_blocks_time_to_go_to/" target="_blank">10</a>
             ).
         </p>
         <p>
@@ -896,6 +913,101 @@ table.stats td#miner_lp, table.stats td#total_lp {
 </div>
 </div>
 
+<a name="mission"></a>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 card">
+    <div class="episode__number">The Mission</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Against Curse of RANK-SIZE distribution in Mining world</header>
+        <p>
+As all of you must know, Crypto notion is not defined as some transactional infrastructure based on cryptography.
+Cryptography is just a first historically appeared technology to guarantee all the transactions in the Crypto world must be IRREVERSIBLE.
+Yes, there is only one property of Crypto notion that is necessary and sufficient to make a definition of the Crypto entity:
+        </p>
+        <p>
+IRREVERSIBLE TRANSACTIONS.
+        </p>
+        <p>
+All other properties are just derivatives from that most fundamental property. For example, a property to be
+your own bank, in other words, to hold the full responsibility yourself if you got scammed by somebody.
+        </p>
+        <p>
+But let us return to irreversible transactions. Indeed, historically, irreversible transactions
+are implemented by running the same special kind of cryptography algorithms by all the Crypto network participants simultaneously.
+Decentralization is coming here. Participants running cryptographic software are not organized in a hierarchical
+relation but rather form an <a href="https://en.wikipedia.org/wiki/Peer-to-peer" target="_blank">ONE RANK peer-to-peer</a> network.
+All the participants are interchangeable, symmetric, no one is emphasized, there are no masters or slaves.
+        </p>
+        <p>
+But ONE RANK networks are pretty rarely found in real life. All the laws of physics, chemistry, biology, sociology
+lead to <a href="https://en.wikipedia.org/wiki/Rank–size_distribution" target="_blank">RANK-SIZE distribution</a> in any use-case, where
+an innocent mind expects <a href="https://en.wikipedia.org/wiki/Discrete_uniform_distribution" target="_blank">UNIFORM distribution</a>.
+        </p>
+        <p>
+And, RANK-SIZE distribution is the CURSE of all the Crypto world since its creation by Satoshi Nakamoto in 2009.
+        </p>
+        <p>
+First of all, there is still no one well working yet perfectly decentralized exchange.
+Several centralized exchanges, if they were distributed uniformly by popularity between end-users, might form
+a good approximation of a whole decentralized exchange. If it were the case, each end-user selects a centralized
+exchange for every next currency conversion RANDOMLY.
+But in real life, the popularity of centralized exchanges has the cursed RANK-SIZE distribution, furthermore in its worst case:
+Almost all the people (90% by money flow) use the f@cking BINANCE.
+        </p>
+        <p>
+I am Florida Haunted from <a href="https://bitcointalk.org/index.php?action=profile;u=341464" target="_blank">Bitcointalk&nbsp;2014</a>
+and I had already seen the end of RANK-SIZE distribution: <a href="https://en.wikipedia.org/wiki/Mt._Gox" target="_blank">MT.&nbsp;GOX</a>.
+Crypto people, you are all under the severe CURSE of RANK-SIZE distribution where as few as just 1-3 TOP participants do control the whole industry.
+Consequently, if they get scammed or ruined by state regulators, the whole industry will be devastated.
+        </p>
+        <p>
+Mining industry is as well deep hard under the CURSE of RANK-SIZE distribution. Given any coin, <a href="https://miningpoolstats.stream/monero" target="_blank">TOP&nbsp;3</a>
+mining pools are occupying above 70% of total network hashrate.
+Despite the fact there is decentralized <a href="https://github.com/SChernykh/p2pool" target="_blank">p2pool</a> software for some coins,
+it does not change the game.
+The reason is simple: p2pool IS NOT a mining pool in the traditional sense but rather a composite of software to be built, deployed,
+connected to each other, running, upgraded, maintained on the responsibility basis of every end-user participant (the miner).
+        </p>
+        <p>
+The CURSE of RANK-SIZE distribution is one of the reasons I have developed and established <b>minexmr2.com</b>,
+first open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts.
+I have to emphasize my work couldn't be possible without <a href="https://github.com/jtgrassie/monero-pool" target="_blank">jtgrassie's monero-pool</a>
+and <a href="https://github.com/SChernykh/p2pool" target="_blank">SChernykh's p2pool</a>, because source code of <b>minexmr2.com</b>
+is based on jtgrassie's monero-pool and SChernykh aims me a lot in fine tuning the p2pool instance itself.
+        </p>
+        <p>
+I do recommend all the miners to use p2pool directly if they have resources and time to deploy and maintain the node.
+<a href="https://github.com/hinto-janai/gupax" target="_blank">Gupax</a> may help a lot as it automates many routines. In coins other than Monero,
+corresponding implementations of p2pool or even gupax also exist, I believe.
+But p2pool is not a mining pool, as it was mentioned above, it is a piece of software interacting with other pieces of software
+you must build, run, connect, maintain for your own responsibility.
+<b>Minexmr2.com</b> on the other hand, is just exactly a CLASSIC VANILLA MINING POOL, you can switch to INSTANTLY.
+And hereby I ask every person reading this, a person that has no resources to establish his own p2pool instance,
+AND connected to <a href="https://miningpoolstats.stream/monero" target="_blank">TOP&nbsp;3</a> mining pools by hashrate, to switch to <b>minexmr2.com</b>.
+        </p>
+        <p>
+<b>Minexmr2.com</b> is a full-fledged pool with hashrate charts, payment history, pending balance, etc. It makes automatic payouts with
+typical p2pool frequency (some 2-3 times a hour), if your pending balance is above 0.01XMR (today worth some $1.5-$1.6).
+Tell that to all your friends and share on your social media.
+        </p>
+        <p>
+Together we make RANK-SIZE distribution UNIFORM and rescue the Crypto world from the CURSE of RANK-SIZE distribution!!!
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+<div class="container_margin_donate"></div>
+</div>
+</div>
+
 <div class="container" data-theme="dark">
 <div class="inner_wrapper">
   <article class="episode1 card">
@@ -906,7 +1018,7 @@ table.stats td#miner_lp, table.stats td#total_lp {
         <p>
             Other Monero mining pools based on p2pool inside:
             <ul>
-            <li><a href="https://www.aterx.com/pool/" target="_blank">www.aterx.com</a>, typical hashrate 1.37MH/s, uses p2pool mini, payment threshold 0.005XMR, payouts every Sunday</li>
+            <li><a href="https://www.aterx.com" target="_blank">www.aterx.com</a>, typical hashrate 1.37MH/s, uses p2pool mini, payment threshold 0.005XMR, payouts every Sunday</li>
             <li><a href="https://www.minerno.de" target="_blank">www.minerno.de</a>, typical hashrate 90KH/s, uses p2pool mini, payment threshold 0.0004XMR, payouts on demand, 0% fees, <a href="https://minerno.de/api/stats/" target="_blank">stats API here</a>.</li>
             </ul>
         </p>
