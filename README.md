@@ -2,7 +2,11 @@
 
 ⚡ May 01 2023: Read our [Mission](https://minexmr2.com/#mission) at pool site.
 
-## Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider for frequent payouts (approx. 2 times/hour) 👋
+## First pool ever to fight Against Curse of RANK-SIZE distribution in Mining world
+
+[The Mission.](https://minexmr2.com/#mission)
+
+### Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider for frequent payouts (approx. 2 times/hour) 👋
 
 ![minexmr2.com site screenshot](minexmr2-com-apr17.png?raw=true)
 
