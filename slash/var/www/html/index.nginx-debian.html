@@ -2,11 +2,11 @@
 <html lang="en-US">
 <head>
 
-<meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<link rel="icon" href="minexmr2-header3.svg" type="image/svg+xml"/>
+<link rel="icon" href="minexmr2-header3.svg" type="image/svg+xml" />
 
 <title>MINEXMR2: regular payouts from p2pool inside</title>
 <!-- Begin formerly Jekyll SEO tag v2.6.1 -->
@@ -16,6 +16,7 @@
 <meta property="og:url" content="https://minexmr2.com" />
 <meta property="og:title" content="MINEXMR2: regular payouts from p2pool inside" />
 <meta property="og:locale" content="en_US" />
+<meta property="og:image" content="https://minexmr2.com/mx2-new-thumb.png" />
 <meta name="description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts" />
 <meta property="og:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts" />
 <link rel="canonical" href="https://minexmr2.com/" />
@@ -25,6 +26,7 @@
 <meta property="twitter:url" content="https://minexmr2.com" />
 <meta property="twitter:title" content="MINEXMR2: regular payouts from p2pool inside" />
 <meta property="twitter:description" content="First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts" />
+<meta property="twitter:image" content="https://minexmr2.com/mx2-new-thumb.png" />
 <script type="application/ld+json">
 {"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/minexmr2-header3.svg"}},"headline":"MINEXMR2: regular payouts from p2pool inside","url":"https://minexmr2.com/","description":"First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts","name":"MINEXMR2: regular payouts from p2pool inside","@context":"https://schema.org"}
 </script>
@@ -112,10 +114,22 @@ h2 {
     font-weight: normal;
 }
 
+.font_meme {
+    font-weight: normal;
+    font-size: 10px;
+}
+
 h3 {
     text-align: center;
     padding: 8px;
     font-size: 1.5em;
+}
+
+img.meme {
+    width: 150px;
+    height: 150px;
+    vertical-align: middle;
+    display: inline-block;
 }
 
 h4 {
@@ -194,14 +208,19 @@ table.stats {
 table.stats th {
     text-align: right;
     width: 50%;
+    max-width: 50%;
     font-weight: normal;
     color: var(--text-th-color);
+    text-overflow: ellipsis;
 }
 
 table.stats td {
     text-align: left;
+    width: 50%;
+    max-width: 50%;
     font-weight: bold;
     color: var(--text-param-color);
+    text-overflow: ellipsis;
 }
 
 .stats_style {
@@ -530,6 +549,15 @@ h1.menu {
     line-height: 6px;
 }
 
+img.meme {
+    width: 130px;
+    height: 130px;
+}
+
+.font_meme {
+    font-size: 9px;
+}
+
 img.inline_header {
     margin-bottom: -20px;
     height: 30px;
@@ -612,6 +640,10 @@ h1.menu {
     font-size: 20px;
 }
 
+.font_meme {
+    font-size: 8px;
+}
+
 .episode1 .episode__content .story p {
     font-size: 10px;
   line-height: 12px;
@@ -685,8 +717,11 @@ table.stats td#miner_lp, table.stats td#total_lp {
 </h1>
 
 <div style="margin-top: 20px; margin-bottom: 20px;">
-<h2 class="font_menu special"><img src="minexmr2-header3.svg" class="inline_header2" alt="MINEXMR2 Monero mining pool header icon 2"/><span>MINEXMR2</span></h2>
-<h3 class="font_menu special">First open-source Monero mining pool using decentralized <a href="https://github.com/SChernykh/p2pool" target="_blank">p2pool</a> as a hashrate-liquidity provider for frequent payouts<br/>(approx. <span class="stats_style" id="payout_freq">0 times/hour</span>)</h3>
+<h2 class="font_menu special"><img src="minexmr2-header3.svg" class="inline_header2" alt="MINEXMR2 Monero mining pool header icon 2" /><span>MINEXMR2</span></h2>
+<h3 class="font_menu special">First open-source Monero mining pool using decentralized <a href="https://github.com/SChernykh/p2pool" target="_blank">p2pool</a>
+as a hashrate-liquidity provider for frequent payouts
+<br/>(approx.&nbsp;<span class="stats_style" id="payout_freq">0 times/hour</span> if&nbsp;above&nbsp;<span class="stats_style" id="payment_threshold2">0.00&nbsp;XMR</span>)</h3>
+<h4 class="font_meme special">&mdash;Give us your old-<img src="minexmr2-mrs-bw.png" class="meme" alt="MINEXMR2.com meme image" />-school hashrate!&mdash;</h4>
 <h4 class="font_menu special">Established 2022-09-15 UTC&nbsp;10:00</h4>
 <h5 class="font_menu special">The name MINEXMR2 is inspired by departed old-school MINEXMR pool and conceptual decentralized p2pool. In no way this pool is related to original MINEXMR</h5>
 </div>
@@ -723,13 +758,16 @@ table.stats td#miner_lp, table.stats td#total_lp {
     <div class="episode__content">
       <div id="p2pool_plot_td" class="story">
         <header>P2Pool Statistics</header>
-        <header class="story_red_block">(Since 2023-04-17 UTC&nbsp;13:00
-        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.2" target="_blank">p2pool&nbsp;v3.2</a>,
+        <header class="story_red_block">(Since&nbsp;2023-05-11 UTC&nbsp;12:00
+        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.3" target="_blank">p2pool&nbsp;v3.3</a>
+        ;
+        Since&nbsp;2023-04-17 UTC&nbsp;13:00
         <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.2" target="_blank">monerod&nbsp;v0.18.2.2</a>
         ;
         Mar&nbsp;18&nbsp;2023
-        p2pool (not monero)
-        <a href="https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/" target="_blank">hard fork</a> passed successfully)</header>
+        p2pool (not&nbsp;monero)
+        <a href="https://www.reddit.com/r/MoneroMining/comments/11f1kjn/reminder_p2pool_network_upgrade_aka_hardfork_on/" target="_blank">hard&nbsp;fork</a>
+        passed&nbsp;successfully)</header>
         <table class="stats">
             <tr><th>Hashrate:</th><td id="p2pool_hashrate">service unavailable</td></tr>
             <tr><th>Mean hashrate 24h:</th><td id="p2pool_hashrate_24h"></td></tr>
@@ -826,7 +864,7 @@ table.stats td#miner_lp, table.stats td#total_lp {
     <div class="episode__number">Killer Feature 2</div>
     <div class="episode__content">
       <div class="story">
-        <header>Effective hashrate provided by decentralized p2pool makes your payouts regular</header>
+        <header>Effective hashrate provided by decentralized p2pool makes your payouts regular and adaptive in amount</header>
         <p>
             No more tears about pool's hashrate and how often new block is being found. Payments from
             p2pool
@@ -844,8 +882,13 @@ table.stats td#miner_lp, table.stats td#total_lp {
             Because each time your balance reaches 0.01XMR you receive the payment, if your own hashrate is great enough,
             you can receive payouts as often as approx. 1.62&nbsp;times&nbsp;per&nbsp;hour.
         </p>
+        <p>
+            Not that 0.01XMR is just a minimum payout threshold. Real payouts are adaptive in volume. High hashrate miners find this pool pretty useful,
+            as their payout chunk amount depends on the mining hashrate. For example, given some 10MH/s-20MH/s lead to 0.02XMR-0.03XMR payout chunks.
+        </p>
         <p class="story_red">
             In few words: despite relatively low this pool proper hashrate, its payout frequency is as high as does p2pool main chain provide!
+            Payout chunks are adaptive, starting at 0.01XMR for low hashrate miners and can be theoretically infinite for high hashrate ones.
         </p>
       </div>
     </div>
@@ -1090,7 +1133,7 @@ Together we make RANK-SIZE distribution UNIFORM and rescue the Crypto world from
         <p>
         Monero network upgrade (fork) near
         <a href="https://xmr.noctism.com" target="_blank">Aug&nbsp;12&nbsp;2022</a> passed successfully.
-        Note: mining software will not be affected.
+        Note: mining software will not be affected. Do not try to hack the pool by enormous hashrate with malformed shares!
         </p>
       </div>
     </div>
@@ -1102,7 +1145,7 @@ Together we make RANK-SIZE distribution UNIFORM and rescue the Crypto world from
         <a href="https://github.com/minexmr2/minexmr2" target="_blank">GitHub</a>,
         <a href="https://gitlab.com/minexmr/minexmr2" target="_blank">GitLab</a>. It is built against Monero
         <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.2" target="_blank">monerod&nbsp;v0.18.2.2</a> and custom-patched
-        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.2" target="_blank">p2pool&nbsp;v3.2</a>.
+        <a href="https://github.com/SChernykh/p2pool/releases/tag/v3.3" target="_blank">p2pool&nbsp;v3.3</a>.
         </p>
       </div>
     </div>
@@ -1544,11 +1587,6 @@ if (xhr.status === 200) {
         var elTotalLastPayouts10 = document.querySelector("#"+"total_lp_10");
         elTotalLastPayouts10.innerHTML = format_total_lp_10_arr(total10_arr_x, total10_arr_y, total10_arr_z);
 
-        var mhmean24h = stats["miner_hashrate_mean24h"];
-
-        var elMinerHRMean24h = document.querySelector("#"+"miner_hashrate_24h");
-        elMinerHRMean24h.innerHTML = format_hashrate(mhmean24h);
-
         var p2phmean24h = stats["p2pool_hashrate_mean24h"];
 
         var elP2PHRMean24h = document.querySelector("#"+"p2pool_hashrate_24h");
@@ -1561,6 +1599,22 @@ if (xhr.status === 200) {
         var p2p_outcoming_connections = stats["p2pool_outcoming_connections"];
         var el_p2p_outcoming_connections = document.querySelector("#"+"p2pool_outcoming_connections");
         el_p2p_outcoming_connections.innerHTML = "" + (p2p_outcoming_connections);
+
+        var pt2 = stats["payment_threshold"];
+        var elPT2 = document.querySelector("#"+"payment_threshold2");
+        elPT2.innerHTML = (pt2) + "&nbsp;XMR";
+
+        var minerhr = stats["miner_hashrate"];
+        var elMinerHR = document.querySelector("#"+"miner_hashrate");
+        var hashPowerKH = minerhr / 1000;
+        var profit_link = "https://www.cryptocompare.com/mining/calculator/xmr?HashingPower=" + hashPowerKH + "&HashingUnit=KH%2Fs&PowerConsumption=0&CostPerkWh=0&MiningPoolFee=1";
+        elMinerHR.innerHTML = format_hashrate(minerhr) + ' <a href="' + profit_link + '" target="_blank">profit</a>';
+
+        var minerhr24 = stats["miner_hashrate_mean24h"];
+        var elMinerHR24 = document.querySelector("#"+"miner_hashrate_24h");
+        var hashPowerKH24 = minerhr24 / 1000;
+        var profit_link24 = "https://www.cryptocompare.com/mining/calculator/xmr?HashingPower=" + hashPowerKH24 + "&HashingUnit=KH%2Fs&PowerConsumption=0&CostPerkWh=0&MiningPoolFee=1";
+        elMinerHR24.innerHTML = format_hashrate(minerhr24) + ' <a href="' + profit_link24 + '" target="_blank">profit</a>';
 
         data[0].x = stats["miner_chart_x"].map(formatDate);
         data[0].y = stats["miner_chart_y"];

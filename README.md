@@ -1,6 +1,7 @@
 # MINEXMR2: a Monero mining pool with regular payouts from p2pool inside, 100% pure open source
 
-⚡ May 01 2023: Read our [Mission](https://minexmr2.com/#mission) at pool site.
+⚡ May 12 2023: Added a link for profit calculation at external site for miner's current and 24h average hashrates.
+Read our [Mission](https://minexmr2.com/#mission) at pool site.
 
 ## First pool ever to fight Against Curse of RANK-SIZE distribution in Mining world
 
@@ -26,6 +27,8 @@ If you mine with us, you get your pending balance update as regular as p2pool fi
 Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
+
+⚡ May 12 2023: Added a link for profit calculation at external site for miner's current and 24h average hashrates.
 
 ⚡ May 01 2023: Read our [Mission](https://minexmr2.com/#mission) at pool site.
 

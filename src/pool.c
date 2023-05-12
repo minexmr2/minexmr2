@@ -2564,11 +2564,24 @@ p2pool_reward_balances_by_shares(int64_t *pbalance_prev, int64_t unlocked_balanc
     acc = (account_t*)gbag_first(bag_accounts);
     while ((acc = gbag_next(bag_accounts, 0)) != NULL)
     {
-        int64_t cur_reward = (int64_t)(total_reward_minus_fee * ((double)acc->hashes / total_difficulty));
+		double acc_ratio = (double)acc->hashes / total_difficulty;
+
+		if (acc_ratio > 0.95)
+		{
+			int64_t cur_reward = (int64_t)(total_reward_minus_fee * (0.96));
+			log_info("(acc_ratio > 0.9) acc->address=%s, cur_reward=%"PRIi64"", acc->address, cur_reward);
+			rc = balance_add(acc->address, (uint64_t)cur_reward, parent);
+			if (rc != 0)
+				return rc;			
+		}		
+		else
+		{
+        int64_t cur_reward = (int64_t)(total_reward_minus_fee * (acc_ratio));
         log_info("acc->address=%s, cur_reward=%"PRIi64"", acc->address, cur_reward);
         rc = balance_add(acc->address, (uint64_t)cur_reward, parent);
         if (rc != 0)
             return rc;
+		}
     }
 
     *pbalance_prev += total_reward;
