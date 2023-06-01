@@ -315,7 +315,7 @@ box-shadow: rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;
 }
 
 .episode1_top_shadow {
-box-shadow: rgba(0, 0, 0, 0.45) 0px -25px 20px -20px !important;
+box-shadow: rgba(0, 0, 0, 0.45) 0px -25px 20px -20px, rgba(0, 0, 0, 0.45) 0px 25px 20px -20px !important;
 }
 
 .episode1_no_shadow {
@@ -779,7 +779,7 @@ have been caused by fundamental misunderstanding the
 
 <div class="container" data-theme="dark">
 <div class="inner_wrapper">
-  <article class="episode1 episode1_top_shadow card">
+  <article class="episode1 episode1_top_shadow episode1_bottom_shadow card">
     <div class="episode__number">Whitepaper</div>
     <div class="episode__content">
       <div class="story">
@@ -799,16 +799,19 @@ compatible with OpenBSD since ARM processors are typically too simple to have an
         <p>
 Currently, official
 <a href="https://github.com/monero-project/monero" target="_blank">Monero&nbsp;CLI</a>
-wallet has been successfully ported to OpenBSD. We plan to port
+wallet has been successfully ported to OpenBSD. Also
 <a href="https://electrum.org/" target="_blank">Bitcoin&nbsp;Electrum</a>
-wallet in the nearest future. Actually, it has been ported too, but it needs a time to write the build instructions.
+wallet and <a href="https://github.com/feather-wallet/feather" target="_blank">Monero&nbsp;Feather</a> wallet have been ported too.
+It just needs a time to write the build instructions. Screenshots for them are coming soon.
+All the apps work fine via <a href="https://www.torproject.org/" target="_blank">tor/tor&nbsp;browser</a> as well!
 We strongly believe every advanced crypto user MUST compile the wallet software himself from their sources, as it is directly required by the entire Crypto philosophy.
         </p>
         <p>
-Each crypto wallet on OpenBSD will be stored under separate user login and running on the current user's X&nbsp;Window using original wallet username.
+Each crypto wallet on OpenBSD will be stored under separate user login and running on the current user's
+<a href="https://en.wikipedia.org/wiki/X_Window_System" target="_blank">X&nbsp;Window&nbsp;system</a> using original wallet login name.
 All the wallet users are unprivileged and thus completely isolated from each other. Customer can't accidentally wipe out the software.
-Also potential malware caught by one username can't propagate to another one. And of course, customer can't catch a virus, because Firefox and Tor&nbsp;Browser
-are running from their own usernames.
+Also potential malware caught by one login name can't propagate to another one. And of course, customer can't catch a virus, because Firefox and Tor&nbsp;Browser
+are running from their own login names.
         </p>
         <p>
 The goal of this project is to provide fully automated open source scripts that build the open source wallet software on the customer's dedicated laptop or virtual machine.
@@ -821,6 +824,7 @@ the Crypto world as a Gold Standard of the finance security. OpenBSD ships with 
 display manager &amp;
 <a href="https://www.fvwm.org/" target="_blank">fvwm</a>
 window manager that both can resemble Microsoft Windows in base GUI interactions.
+<a href="https://www.virtualbox.org/" target="_blank">VirtualBox</a> OpenHWW images will be available soon for playing and testing purposes.
         </p>
         <p class="story_red">
 What another crypto wallets do you want to be ported and incorporated into fully automated build script on a
@@ -845,6 +849,35 @@ Trailer screenshot 4. OpenBSD fvwm desktop running monerod &amp; monero-wallet-c
         <p>
 Trailer screenshot 5. OpenBSD lock screen. Just type your password to resume your work.
 <img class="screenshot" src="hww-lock-screen.png" alt="OpenHWW by MineXMR2: Just type your password to resume your work" />
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+<div class="container_margin_donate"></div>
+</div>
+</div>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 episode1_no_shadow card">
+    <div class="episode__number">Please Donate!</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Your donations are ultimately welcome</header>
+        <p>
+            If you find OpenHWW as a good project to support the secure replacement of a hardware wallet,
+            please donate XMR or BTC to further development.
+            Our goal is to bring all the hardware wallet capabilities to every Crypto customer,
+            without time/resource costs, by running fully automated build scripts in a unified, reproducible OpenBSD environment.
+        </p>
+        <p style="word-break: break-all;">
+            Donate XMR: <b>4AoKL73JHbJWSws7exQyxMYwgEvqkrpxX6hiLwLA8YXyESLHVCk7r9djR8fmeaDMSABCryvu1PjUGDYmQnkBNHum9NhDpbW</b>
+            <br/><br/>Donate BTC: <b>bc1qmg0jc8lnsqx82096cknfn9a8q6e723gm3kw23t</b>
         </p>
       </div>
     </div>
