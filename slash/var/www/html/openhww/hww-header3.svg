@@ -1,0 +1,22 @@
+<svg
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 15 33"
+    height="100"
+    width="100">
+    <defs/>
+    <g
+        transform="translate(-1,-2) scale(1.1,1)">
+    <path
+        d="M20,9H17V7A5,5,0,0,0,7,7V9H4L3,22H21ZM15,9H9V7a3,3,0,0,1,6,0Z"
+        style="fill:#555588;stroke:none;"
+    />
+    </g>
+    <g
+        transform="translate(-2,3.5) scale(0.82,0.75)">
+    <path
+        d="M20,9H17V7A5,5,0,0,0,7,7V9H4L3,22H21ZM15,9H9V7a3,3,0,0,1,6,0Z"
+        style="fill:#cc0066;stroke:none;"
+    />
+    </g>
+</svg>

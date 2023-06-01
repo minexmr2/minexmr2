@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="icon" href="hww-header3.svg" type="image/svg+xml" />
+
+<title>OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet</title>
+<!-- Begin formerly Jekyll SEO tag v2.6.1 -->
+<meta name="generator" content="Jekyll v3.8.7" />
+<meta name="author" content="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://minexmr2.com/openhww/" />
+<meta property="og:title" content="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:image" content="https://minexmr2.com/openhww/hww-new-thumb.png" />
+<meta name="description" content="Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets" />
+<meta property="og:description" content="Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets" />
+<link rel="canonical" href="https://minexmr2.com/openhww/" />
+<meta property="og:url" content="https://minexmr2.com/openhww/" />
+<meta property="og:site_name" content="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:url" content="https://minexmr2.com/openhww/" />
+<meta property="twitter:title" content="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet" />
+<meta property="twitter:description" content="Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets" />
+<meta property="twitter:image" content="https://minexmr2.com/openhww/hww-new-thumb.png" />
+<script type="application/ld+json">
+{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/openhww/hww-header3.svg"}},"headline":"OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet","url":"https://minexmr2.com/openhww/","description":"Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets","name":"OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet","@context":"https://schema.org"}
+</script>
+
+<style>
+@font-face {
+    font-family: 'IBMPlexSans';
+    src: url('IBMPlexSans-Regular-Latin1.woff2');
+    font-display: swap;
+}
+
+* {margin:0; padding:0;}
+
+html, body {
+  overflow-x: hidden;
+}
+
+body {
+  position: relative;
+}
+
+body {
+    font-family: 'IBMPlexSans', Helvetica, sans-serif;
+    font-size: 1em;
+}
+header {
+    font-size: larger;
+    font-weight: normal;
+    text-align: center;
+}
+table {
+    padding-bottom: 1em;
+}
+td {
+    vertical-align: top;
+    white-space: nowrap;
+}
+td:last-child {
+    white-space: unset;
+}
+.miner {
+    display: none;
+}
+#address {
+    min-width: 10ch;
+    max-width: 10ch;
+    overflow: hidden;
+    border-bottom: 1px dashed var(--text-color);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-wrap: unset;
+}
+#address:focus {
+    outline: 0px solid transparent;
+    text-overflow: initial;
+    white-space: initial;
+    word-wrap: break-word;
+}
+
+body {
+    background-color: #203051;
+    color: #333;
+}
+
+h1.menu {
+    background-color: var(--block-red-color);
+    color: #fff;
+    padding: 8px;
+    font-size: 1.2em;
+    margin-top: -4px;
+box-shadow: rgba(0, 0, 0, 0.30) 0px 20px 10px -10px, rgba(0, 0, 0, 0.60) 0px 12px 5px -10px;
+}
+
+h2 {
+    text-align: center;
+    font-size: 1.75em;
+    padding: 8px;
+}
+
+.special {
+    padding-left: 50px; padding-right: 50px;
+}
+
+.font_menu {
+    font-weight: normal;
+}
+
+.font_meme {
+    font-weight: normal;
+    font-size: 10px;
+}
+
+h3 {
+    text-align: center;
+    padding: 8px;
+    font-size: 1.5em;
+}
+
+h4 {
+    text-align: center;
+    padding: 8px;
+    font-size: 1.0em;
+}
+
+h5 {
+    text-align: center;
+    padding: 8px;
+    font-size: 0.9em;
+}
+
+img.inline_header {
+    vertical-align: bottom;
+    margin-bottom: -30px;
+    height: 57px;
+    width: auto;
+}
+
+img.inline_header2 {
+    vertical-align: bottom;
+    margin-bottom: -10px;
+    height: 48px;
+    width: auto;
+}
+
+img.meme {
+    width: 150px;
+    height: 150px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+img.social {
+    width: 20px;
+    height: auto;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+img.screenshot {
+    width: 100%;
+    height: auto;
+}
+
+.story p {
+    padding: 8px;
+    color: var(--text-th-color);
+}
+
+p.story_red, header.story_red {
+    background-color: var(--block-red-color);
+    color: #fff;
+}
+
+header.story_red_block {
+    background-color: var(--block-red-color);
+    color: #fff;
+    line-height: 1em;
+    font-size: 0.8em;
+    padding: 8px;
+}
+
+/*
+  --link-color: #39d;
+  --link-color-hover: #3cf;
+*/
+
+h1.menu a:link {
+    color: #9df;
+}
+
+h1.menu a:visited {
+    color: #9df;
+}
+
+h1.menu a:active {
+    color: #9df;
+}
+
+h1.menu a:hover {
+    color: #def;
+}
+
+header.story_red_block a:link {
+    color: #6cf;
+}
+
+header.story_red_block a:visited {
+    color: #6cf;
+}
+
+header.story_red_block a:active {
+    color: #6cf;
+}
+
+header.story_red_block a:hover {
+    color: #9df;
+}
+
+header.story_red a:link {
+    color: #6cf;
+}
+
+header.story_red a:visited {
+    color: #6cf;
+}
+
+header.story_red a:active {
+    color: #6cf;
+}
+
+header.story_red a:hover {
+    color: #9df;
+}
+
+.story ul {
+    color: var(--text-th-color);
+}
+
+table.stats {
+    width: 100%;
+}
+
+table.stats th {
+    text-align: right;
+    width: 50%;
+    max-width: 50%;
+    font-weight: normal;
+    color: var(--text-th-color);
+    text-overflow: ellipsis;
+}
+
+table.stats td {
+    text-align: left;
+    width: 50%;
+    max-width: 50%;
+    font-weight: bold;
+    color: var(--text-param-color);
+    text-overflow: ellipsis;
+}
+
+.stats_style {
+    font-weight: bold;
+    color: var(--text-param-color);
+}
+
+a:link {
+    color: var(--link-color);
+}
+
+a:visited {
+    color: var(--link-color);
+}
+
+a:active {
+    color: var(--link-color);
+}
+
+a:hover {
+    color: var(--link-color-hover);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.center { text-align: center; }
+
+.container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.episode2 {
+  position: relative;
+    width: 46.25%;
+    margin-left: 2.5%;
+    margin-top: 2.5%;
+  border: 1px dotted var(--border-color);
+  margin-bottom: 0;
+box-shadow: rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;
+}
+
+.episode1_top_shadow {
+box-shadow: rgba(0, 0, 0, 0.45) 0px -25px 20px -20px !important;
+}
+
+.episode1_no_shadow {
+box-shadow: none !important;
+}
+
+.episode2:nth-last-child(-n+2) {
+    margin-bottom: 2.5%;
+}
+
+.episode1 {
+  position: relative;
+  border-top: 1px dotted var(--border-color);
+  border-left: 1px dotted var(--border-color);
+  border-right: 1px dotted var(--border-color);
+    margin-left: 2.5%;
+    margin-right: 2.5%;
+box-shadow: rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;
+}
+
+.episode1:last-child {
+  border-bottom: 1px dotted var(--border-color);
+}
+
+.episode__number {
+  font-size: 1em;
+  text-align: center;
+  height: calc(1em + 20px);
+  padding: 8px;
+}
+
+.episode__content {
+
+}
+
+.episode__content .story {
+  line-height: 1.5em;
+}
+
+.episode__content .story header {
+    margin-top: 8px;
+    padding: 8px;
+}
+
+.footnote .episode__content .story {
+    font-size: 12px;
+  line-height: 14px;
+}
+
+.fullwidth {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.borderzero {
+  border: 0px dotted #fff !important;
+  background-image: none !important;
+}
+
+.important {
+    background-color: #555;
+    color: #eee;
+}
+
+.important2 {
+    background-color: #fff;
+    color: #000;
+}
+
+.important2grad {
+    background: linear-gradient(90deg, rgba(204,204,204,1) 0%, rgba(255,255,255,1) 50%, rgba(204,204,204,1) 100%);
+}
+
+.important3 {
+    background-color: #ccc;
+    color: #000;
+}
+
+.container_margin_footnote {
+margin-top: 40px;
+}
+
+.container_margin_donate {
+margin-top: 40px;
+}
+
+.episode__content .story p {
+    font-size: 0.9em;
+    line-height: 1.4em;
+}
+
+.episode__content .story p:first-of-type {
+margin-top: 20px;
+}
+
+.episode__content .story ul {
+    font-size: 0.9em;
+    line-height: 1.4em;
+margin-left: 32px;
+}
+
+.footnote .episode__content .story p:first-of-type {
+margin-top: 0px;
+}
+
+
+
+/*** Light Mode Theme ***/
+[data-theme="default"] {
+  --body-bg-color: #bed2dd;
+  --card-bg-color: #eef;
+  --card-fn-bg-color: #ddf;
+  --border-color: #888;
+  --text-color: #333;
+  --text-param-color: #54a;
+  --text-th-color: #555;
+  --switch-on-color: #888;
+  --switch-off-color: #ccc;
+  --toggler-color: #fff;
+  --link-color: #36a;
+  --link-color-hover: #39f;
+  --slider2-color: #fff;
+  --block-red-color: #a15;
+}
+/* Dark Mode Theme */
+[data-theme="dark"] {
+  --body-bg-color: #2a3f6b;
+  --card-bg-color: #345;
+  --card-fn-bg-color: #446;
+  --border-color: #999;
+  --text-color: #fff;
+  --text-param-color: #baf;
+  --text-th-color: #ddd;
+  --toggler-color: #ccc;
+  --switch-on-color: #fff;
+  --switch-off-color: #444;
+  --link-color: #39d;
+  --link-color-hover: #3cf;
+  --slider2-color: #ccc;
+  --block-red-color: #904;
+}
+
+.container {
+  color: var(--text-color);
+  background-color: var(--body-bg-color);
+  transition: color .45s ease-in, background-color .45s ease-in;
+}
+
+.inner_wrapper {
+  position: relative;
+    width: 100%;
+}
+
+.inner_wrapper2 {
+  position: relative;
+    width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+/*** Card ***/
+.card {
+  color: var(--text-color);
+  background-color: var(--card-bg-color);
+  transition: color .45s ease-in,
+              background-color .45s ease-in;
+}
+
+.card_footnote {
+  color: var(--text-color);
+  background-color: var(--card-fn-bg-color);
+  transition: color .45s ease-in,
+              background-color .45s ease-in;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 10px;
+  float: right;
+}
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--switch-off-color);
+  -webkit-transition: .4s;
+  transition: .4s;
+  font-size: 8px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 8px;
+  width: 8px;
+  left: 2px;
+  bottom: 1px;
+  background-color: var(--toggler-color);
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: var(--switch-on-color);
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--switch-on-color);
+}
+input:checked + .slider:before {
+  -webkit-transform: translateX(11px);
+  -ms-transform: translateX(11px);
+  transform: translateX(11px);
+}
+/* Rounded sliders */
+.slider.round {
+  border-radius: 10px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+.slider2 {
+  position: absolute;
+  cursor: pointer;
+  top: 12px;
+  left: 0px;
+  right: 0;
+  bottom: 0;
+  font-size: 8px;
+  color: var(--slider2-color);
+  transition: color .45s ease-in;
+  text-align: center;
+}
+
+[contenteditable=true]:empty:not(:focus):before {
+    content:attr(placeholder)
+}
+
+
+
+@media only screen and (min-width: 768px) and (max-width: 1280px) {
+
+.container_margin_footnote {
+margin-top: 30px;
+}
+
+.container_margin_donate {
+margin-top: 30px;
+}
+
+}
+
+
+
+@media only screen and (max-device-width: 767px) and (orientation: portrait) {
+
+h1.menu {
+    font-size: 11px;
+    padding: 8px;
+    box-shadow: rgba(0, 0, 0, 0.50) 0px 12px 12px -5px, rgba(0, 0, 0, 0.50) 0px 7px 5px -5px;
+    line-height: 6px;
+}
+
+img.meme {
+    width: 120px;
+    height: 120px;
+}
+
+img.social {
+    width: 16px;
+    height: auto;
+}
+
+.font_meme {
+    font-size: 9px;
+}
+
+img.inline_header {
+    margin-bottom: -20px;
+    height: 30px;
+}
+
+.slider {
+  top: -2px;
+  bottom: 2px;
+}
+
+.slider2 {
+  top: 10px;
+}
+
+.special {
+    padding-left: 20px; padding-right: 20px;
+}
+
+.episode2 {
+    width: 100%;
+    margin-right: 2.5%;
+}
+
+.episode2:last-child {
+    margin-top: 0;
+    margin-bottom: 2.5%;
+}
+
+.episode__content {
+
+}
+
+.episode__content .story {
+
+}
+
+.episode__number {
+
+}
+
+.container_margin {
+margin-top: 16px;
+}
+
+.container_margin_footnote {
+margin-top: 28px;
+}
+
+.container_margin_donate {
+margin-top: 28px;
+}
+
+.episode__content .story p {
+    font-size: 1em;
+    line-height: 1.5em;
+}
+
+.episode__content .story ul {
+    font-size: 1em;
+    line-height: 1.5em;
+
+}
+
+header.story_red_block {
+    font-size: 11px;
+  line-height: 12px;
+}
+
+table.stats td#miner_lp, table.stats td#total_lp {
+    line-height: 0.85em;
+}
+
+}
+
+
+
+@media only screen and (max-device-width: 767px) and (orientation: landscape) {
+
+h1.menu {
+    font-size: 20px;
+}
+
+.font_meme {
+    font-size: 8px;
+}
+
+.episode1 .episode__content .story p {
+    font-size: 10px;
+  line-height: 12px;
+}
+
+.episode1 .episode__content .story ul {
+    font-size: 10px;
+  line-height: 12px;
+
+}
+
+.episode2 .episode__content .story p {
+    font-size: 1em;
+    line-height: 1.5em;
+}
+
+.episode2 .episode__content .story ul {
+    font-size: 1em;
+    line-height: 1.5em;
+
+}
+
+.footnote .episode__content .story p {
+    font-size: 8px;
+  line-height: 10px;
+}
+
+.footnote .episode__content .story ul {
+    font-size: 8px;
+  line-height: 10px;
+}
+
+.container_margin_footnote {
+margin-top: 26px;
+}
+
+.container_margin_donate {
+margin-top: 26px;
+}
+
+header.story_red_block {
+    font-size: 8px;
+  line-height: 10px;
+}
+
+table.stats td#miner_lp, table.stats td#total_lp {
+    line-height: 0.85em;
+}
+
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+
+
+<h1 class="menu font_menu"><img src="hww-header.svg" class="inline_header" alt="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet icon"/><span><a href="../index.html">MineXMR2</a> | OpenHWW</span>
+      <label class="switch">
+        <input id="toggler" type="checkbox"/>
+        <span class="slider round"></span>
+        <div class="slider2">NIGHT</div>
+      </label>
+</h1>
+
+<div style="margin-top: 20px; margin-bottom: 20px;">
+<h2 class="font_menu special"><img src="hww-header3.svg" class="inline_header2" alt="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet icon 2" /><span>OpenHWW</span></h2>
+<h3 class="font_menu special">Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets</h3>
+<h4 class="font_meme special">&mdash;Give us your old-<img src="hww-mx2-rounded.png" class="meme" alt="OpenBSD meme image" />-school cryptos!&mdash;</h4>
+<h4 class="font_menu special"><a href="https://www.reddit.com/r/Monero/comments/13cjzs0/laptop_with_deactivated_intel_me_running_openbsd/" target="_blank">Proposed</a> 2023-05-08</h4>
+<h5 class="font_menu special">We believe the recent
+<a href="https://www.reddit.com/r/ledgerwallet/comments/13k937x/ledger_admits_the_ability_to_be_able_to_create/" target="_blank">disasters with hardware wallets</a>
+have been caused by fundamental misunderstanding the
+<a href="https://docs.zksync.io/dev/security/approach/" target="_blank">Security by Isolation</a> concept, leading to blind trust in proprietary 3rd-parties</h5>
+</div>
+
+
+</div>
+</div>
+
+<a name="mission"></a>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 episode1_top_shadow card">
+    <div class="episode__number">Whitepaper</div>
+    <div class="episode__content">
+      <div class="story">
+        <header class="story_red">Turn your dedicated laptop or USB-stick running <a href="https://www.openbsd.org/" target="_blank">OpenBSD</a>
+        into ultimately secure hardware wallet.
+        Official <a href="https://github.com/monero-project/monero" target="_blank">Monero&nbsp;CLI&nbsp;suite</a> and
+        <a href="https://github.com/spesmilo/electrum" target="_blank">Bitcoin&nbsp;Electrum</a> are already working</header>
+        <p>
+The nowadays <a href="https://decrypt.co/140317/ledger-crypto-wallet-under-fire-over-seed-phrase-recovery-service" target="_blank">scandal</a>
+around Ledger hardware wallet (and inherently all the hardware wallets) has inspired us to bring the only true fundamental solution
+for a hardware wallet: a dedicated laptop running OpenBSD on a SOFTRAID encrypted disk with disabled
+<a href="https://github.com/corna/me_cleaner" target="_blank">Intel&nbsp;ME</a>.
+Alternatively one can use a palette of
+<a href="https://www.openbsd.org/arm64.html" target="_blank">ARM&nbsp;dashboards</a>
+compatible with OpenBSD since ARM processors are typically too simple to have an "ARM&nbsp;ME".
+        </p>
+        <p>
+Currently, official
+<a href="https://github.com/monero-project/monero" target="_blank">Monero&nbsp;CLI</a>
+wallet has been successfully ported to OpenBSD. We plan to port
+<a href="https://electrum.org/" target="_blank">Bitcoin&nbsp;Electrum</a>
+wallet in the nearest future. Actually, it has been ported too, but it needs a time to write the build instructions.
+We strongly believe every advanced crypto user MUST compile the wallet software himself from their sources, as it is directly required by the entire Crypto philosophy.
+        </p>
+        <p>
+Each crypto wallet on OpenBSD will be stored under separate user login and running on the current user's X&nbsp;Window using original wallet username.
+All the wallet users are unprivileged and thus completely isolated from each other. Customer can't accidentally wipe out the software.
+Also potential malware caught by one username can't propagate to another one. And of course, customer can't catch a virus, because Firefox and Tor&nbsp;Browser
+are running from their own usernames.
+        </p>
+        <p>
+The goal of this project is to provide fully automated open source scripts that build the open source wallet software on the customer's dedicated laptop or virtual machine.
+The whole setup will be as easy as "git clone &lt;repo-name&gt;; make; make install".
+        </p>
+        <p>
+In fact, OpenBSD is an easy to use operating system that nevertheless calls a "holly thrill" in a mid customer mind. We are here to break that thrill and bring OpenBSD into
+the Crypto world as a Gold Standard of the finance security. OpenBSD ships with extremely lightweight yet fully customizable
+<a href="https://why-openbsd.rocks/fact/xenodm/" target="_blank">xenodm</a>
+display manager &amp;
+<a href="https://www.fvwm.org/" target="_blank">fvwm</a>
+window manager that both can resemble Microsoft Windows in base GUI interactions.
+        </p>
+        <p class="story_red">
+What another crypto wallets do you want to be ported and incorporated into fully automated build script on a
+OpenHWW&nbsp;by&nbsp;MineXMR2 platform? Write email to: <b>minexmr2@tutanota.com</b>.
+        </p>
+        <p>
+Trailer screenshot 1. OpenBSD boot. Type your passphrase for a SOFTRAID encrypted disk.
+<img class="screenshot" src="hww-passphrase.png" alt="OpenHWW by MineXMR2: Type your passphrase for a SOFTRAID encrypted disk" />
+        </p>
+        <p>
+Trailer screenshot 2. OpenBSD xenodm login. Type your username and password to login into a system.
+<img class="screenshot" src="hww-login-screen.png" alt="OpenHWW by MineXMR2: Type your username and password to login into a system" />
+        </p>
+        <p>
+Trailer screenshot 3. OpenBSD fvwm desktop. Right-click the screen by mouse to see a context menu like in Windows OS.
+<img class="screenshot" src="hww-desktop.png" alt="OpenHWW by MineXMR2: Right-click the screen by mouse to see context menu like in Windows OS" />
+        </p>
+        <p>
+Trailer screenshot 4. OpenBSD fvwm desktop running monerod &amp; monero-wallet-cli. Wait for full blockchain sync, then type you Monero wallet file name.
+<img class="screenshot" src="hww-desktop-monerod.png" alt="OpenHWW by MineXMR2: Wait for full blockchain sync, then type you Monero wallet file name" />
+        </p>
+        <p>
+Trailer screenshot 5. OpenBSD lock screen. Just type your password to resume your work.
+<img class="screenshot" src="hww-lock-screen.png" alt="OpenHWW by MineXMR2: Just type your password to resume your work" />
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+<div class="container_margin_footnote"></div>
+</div>
+</div>
+
+<div class="container episode1_top_shadow" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 footnote fullwidth borderzero important2 card_footnote">
+    <div class="episode__content">
+      <div class="story">
+        <p>
+2023-06-01. First trailer screenshots running monerod &amp; monero-wallet-cli have been added. Introduction has been written.
+        </p>
+      </div>
+    </div>
+  </article>
+  <article class="episode1 footnote fullwidth borderzero important3 card_footnote">
+    <div class="episode__content">
+      <div class="story">
+        <p>
+Currently OpenHWW by MineXMR2 uses <a href="https://www.openbsd.org/72.html" target="_blank">OpenBSD&nbsp;v7.2</a> as its base
+and <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.2" target="_blank">Monero&nbsp;CLI&nbsp;suite&nbsp;v0.18.2.2</a>.
+        </p>
+      </div>
+    </div>
+  </article>
+  <article class="episode1 footnote fullwidth borderzero important card_footnote">
+    <div class="episode__content">
+      <div class="story">
+        <p class="story_red">
+Support email if something goes wrong (especially with SOFTRAID disk encryption): <b>minexmr2@tutanota.com</b>.
+<a href="https://www.reddit.com/user/florida-haunted" target="_blank"><img class="social" src="reddit-logo.svg" alt="Find us on Reddit" /></a>
+<a href="https://twitter.com/florida_haunted" target="_blank"><img class="social" src="twitter-logo.svg" alt="Find us on Twitter" /></a>
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
+
+<script>
+// On toggler clicked
+
+document.getElementById('toggler').addEventListener('change', (event) => {
+  //console.log('change event');
+  event.preventDefault();
+  var containers = document.getElementsByClassName('container');
+  for (var i = 0; i < containers.length; ++i) {
+    var container = containers[i];
+    container.removeAttribute('data-theme');
+    event.target.checked ? container.setAttribute('data-theme', 'default') : container.setAttribute('data-theme', 'dark');
+  }
+  var slider2 = document.getElementsByClassName('slider2')[0];
+  slider2.innerHTML = event.target.checked ? "DAY" : "NIGHT";
+
+  if (event.target.checked) {
+    layout.plot_bgcolor = "#fff";
+    layout.paper_bgcolor = "#fff";
+    layout.font.color = "#555";
+    layout.xaxis.gridcolor = "#ddd";
+    layout.yaxis.gridcolor = "#ddd";
+    layout2.plot_bgcolor = "#fff";
+    layout2.paper_bgcolor = "#fff";
+    layout2.font.color = "#555";
+    layout2.xaxis.gridcolor = "#ddd";
+    layout2.yaxis.gridcolor = "#ddd";
+    data[0].line.color = "#54a";
+    Plotly.newPlot('miner_plot', data, layout, config);
+    data2[0].line.color = "#54a";
+    Plotly.newPlot('p2pool_plot', data2, layout2, config2);
+  }
+  else {
+    layout.plot_bgcolor = "#444";
+    layout.paper_bgcolor = "#444";
+    layout.font.color = "#ddd";
+    layout.xaxis.gridcolor = "#555";
+    layout.yaxis.gridcolor = "#555";
+    layout2.plot_bgcolor = "#444";
+    layout2.paper_bgcolor = "#444";
+    layout2.font.color = "#ddd";
+    layout2.xaxis.gridcolor = "#555";
+    layout2.yaxis.gridcolor = "#555";
+    data[0].line.color = "#baf";
+    Plotly.newPlot('miner_plot', data, layout, config);
+    data2[0].line.color = "#baf";
+    Plotly.newPlot('p2pool_plot', data2, layout2, config2);
+  }
+});
+</script>
+
+</body>
