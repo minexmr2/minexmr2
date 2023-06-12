@@ -17,7 +17,7 @@ TLS pool port: 8443
 
 This mining pool implementation is based
 on [jtgrassie's monero-pool](https://github.com/jtgrassie/monero-pool).
-Just nearly 25% of code is added/rewritten, providing pool's, miner's hashrate charts, last payouts table and more. Jtgrassie's monero-pool have offered a robust base to develop minexmr2.com pool
+Just nearly 25% of code is added/rewritten, providing pool's, miner's hashrate charts, last payouts table and more. Jtgrassie's monero-pool has offered a robust base to develop minexmr2.com pool
 as a proxy to decentralized p2pool.
 See build instructions below.
 
