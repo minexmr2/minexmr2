@@ -15,13 +15,13 @@ Pool port: 4444.
 TLS pool port: 8443
 ...And your valid Monero address (4... or 8...). That's all you need to start mining on MineXMR variant 2 pool. No registration, no cookies, no 3rd party scripts loaded from other domains, no personal data collection.
 
-This is [minexmr2.com](https://minexmr2.com) Monero mining pool implementation based
+This mining pool implementation is based
 on [jtgrassie's monero-pool](https://github.com/jtgrassie/monero-pool).
-Just nearly 25% of code is added/rewritten, because jtgrassie's monero-pool offers a robust base to develop minexmr2.com pool
+Just nearly 25% of code is added/rewritten, providing pool's, miner's hashrate charts, last payouts table and more. Jtgrassie's monero-pool have offered a robust base to develop minexmr2.com pool
 as a proxy to decentralized p2pool.
 See build instructions below.
 
-The name MINEXMR2 is inspired by departed old-school MINEXMR pool and conceptual decentralized p2pool. In no way this pool is related to original MINEXMR.
+The name MineXMR2 is inspired by departed old-school MineXMR pool as its variant 2 using conceptual decentralized p2pool. In no way this pool is related to original MineXMR.
 
 - 🔭 FULL support of [SChernykh p2pool](https://github.com/SChernykh/p2pool) has been implemented!
 Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider.
