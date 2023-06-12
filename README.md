@@ -1,18 +1,23 @@
-# MINEXMR2: a Monero mining pool with regular payouts from p2pool inside, 100% pure open source
+# MineXMR2: MineXMR variant 2 come from p2pool 👋
 
-⚡ Jun 01 2023: Launched a brand new related project [OpenHWW](https://minexmr2.com/openhww/), initiating migration to [OpenBSD](https://www.openbsd.org).
+## First open-source Monero mining pool using decentralized p2pool as a hashrate-liquidity provider for frequent payouts (approx. 2 times/hour)
 
-## First pool ever to fight Against Curse of RANK-SIZE distribution in Mining world
+### Also first pool ever to fight Against Curse of RANK-SIZE distribution in Mining world; we are migrating to the highly secure [OpenBSD](https://www.openbsd.org) environment
 
 [The Mission.](https://minexmr2.com/#mission)
 
-### Hi there! Now minexmr2.com pool uses decentralized p2pool as a hashrate-liquidity provider for frequent payouts (approx. 2 times/hour) 👋
+⚡ Jun 12 2023: Added official support of [xmrig-proxy](https://github.com/xmrig/xmrig-proxy); fixed some potential buffer overflow; updated to p2pool [v3.4](https://github.com/SChernykh/p2pool/releases/tag/v3.4).
 
 ![minexmr2.com site screenshot](minexmr2-com-apr17.png?raw=true)
 
+Quick start domain (stratum): minexmr2.com.
+Pool port: 4444.
+TLS pool port: 8443
+...And your valid Monero address (4... or 8...). That's all you need to start mining on MineXMR variant 2 pool. No registration, no cookies, no 3rd party scripts loaded from other domains, no personal data collection.
+
 This is [minexmr2.com](https://minexmr2.com) Monero mining pool implementation based
 on [jtgrassie's monero-pool](https://github.com/jtgrassie/monero-pool).
-Just nearly 10% of code is added/rewritten, because jtgrassie's monero-pool offers a robust base to develop minexmr2.com pool
+Just nearly 25% of code is added/rewritten, because jtgrassie's monero-pool offers a robust base to develop minexmr2.com pool
 as a proxy to decentralized p2pool.
 See build instructions below.
 
@@ -26,6 +31,8 @@ If you mine with us, you get your pending balance update as regular as p2pool fi
 Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
+
+⚡ Jun 12 2023: Added official support of [xmrig-proxy](https://github.com/xmrig/xmrig-proxy); fixed some potential buffer overflow; updated to p2pool [v3.4](https://github.com/SChernykh/p2pool/releases/tag/v3.4).
 
 ⚡ Jun 01 2023: Launched a brand new related project [OpenHWW](https://minexmr2.com/openhww/), initiating migration to [OpenBSD](https://www.openbsd.org).
 

@@ -2455,7 +2455,7 @@ p2pool_reward_balances_by_shares(int64_t *pbalance_prev, int64_t unlocked_balanc
         acc->hashes = 0;
     }
 
-    for (uint64_t h = (height - 10); h > (height_prev - 10); --h) // roughly last day
+    for (uint64_t h = (height - 60); h > (height_prev - 60); --h) // roughly last day //TODO: done - 60 at OpenXMR
     {
         //log_debug("h=%"PRIu64"", h);
 
@@ -2568,8 +2568,8 @@ p2pool_reward_balances_by_shares(int64_t *pbalance_prev, int64_t unlocked_balanc
 
 		if (acc_ratio > 0.95)
 		{
-			int64_t cur_reward = (int64_t)(total_reward_minus_fee * (0.96));
-			log_info("(acc_ratio > 0.9) acc->address=%s, cur_reward=%"PRIi64"", acc->address, cur_reward);
+			int64_t cur_reward = (int64_t)(total_reward_minus_fee * (0.95));
+			log_info("(acc_ratio > 0.95) acc->address=%s, cur_reward=%"PRIi64"", acc->address, cur_reward);
 			rc = balance_add(acc->address, (uint64_t)cur_reward, parent);
 			if (rc != 0)
 				return rc;			
@@ -4225,8 +4225,8 @@ upstream_connect(void)
 
     bufferevent_setcb(upstream_event,
             upstream_on_read, NULL, upstream_on_event, NULL);
-    bufferevent_setwatermark(upstream_event, EV_READ, 0, MAX_LINE*100);
-    bufferevent_setwatermark(upstream_event, EV_WRITE, 0, MAX_LINE*100);
+    bufferevent_setwatermark(upstream_event, EV_READ, 0, MAX_LINE);
+    bufferevent_setwatermark(upstream_event, EV_WRITE, 0, MAX_LINE);
     bufferevent_enable(upstream_event, EV_READ|EV_WRITE);
     evutil_make_socket_nonblocking(bufferevent_getfd(upstream_event));
 
@@ -4471,7 +4471,7 @@ p2pool_on_read(struct bufferevent *bev, void *ctx)
             log_error("Bad message from p2pool");
         */
 
-        if (n > (MAX_LINE-2))
+        if (n > (MAX_LINE - 2))
         {
             free(line);
             char body[ERROR_BODY_MAX] = {0};
@@ -4751,8 +4751,8 @@ p2pool_connect(client_t *client)
 
     bufferevent_setcb(client->p2pool_event,
             p2pool_on_read, NULL, p2pool_on_event, client);
-    bufferevent_setwatermark(client->p2pool_event, EV_READ, 0, MAX_LINE*100);
-    bufferevent_setwatermark(client->p2pool_event, EV_WRITE, 0, MAX_LINE*100);
+    bufferevent_setwatermark(client->p2pool_event, EV_READ, 0, MAX_LINE);
+    bufferevent_setwatermark(client->p2pool_event, EV_WRITE, 0, MAX_LINE);
     bufferevent_enable(client->p2pool_event, EV_READ|EV_WRITE);
     evutil_make_socket_nonblocking(bufferevent_getfd(client->p2pool_event));
 
@@ -5730,6 +5730,13 @@ static void p2pool_miner_on_login(const char *line, size_t n, json_object *messa
         client->miner_login_line_len = 0;
     }
 
+    if (n > (MAX_LINE - 2))
+    {
+        send_validation_error(client, "Invalid n > (MAX_LINE - 2))");
+        *pvalid = false;
+        return;
+    }
+
     client->miner_login_line = (char*)malloc(MAX_LINE);
     bzero(client->miner_login_line, MAX_LINE);
     memcpy(client->miner_login_line, line, n);
@@ -5780,6 +5787,12 @@ static void p2pool_miner_on_submit(const char *line, size_t n, json_object *mess
     log_debug("job_id_val='%s', req_id_val=%d", job_id_val, req_id_val);
     p2pool_submit_job(client, job_id_val, req_id_val);
 
+    if (n > (MAX_LINE - 2))
+    {
+        send_validation_error(client, "n > (MAX_LINE - 2)");
+        return;
+    }
+
     char linebuf[MAX_LINE];
     bzero(linebuf, MAX_LINE);
     memcpy(linebuf, line, n);
@@ -5828,7 +5841,7 @@ miner_on_read(struct bufferevent *bev, void *ctx)
 
     while ((line = evbuffer_readln(input, &n, EVBUFFER_EOL_LF)))
     {
-        if (n > (MAX_LINE-2))
+        if (n > (MAX_LINE - 2))
         {
             free(line);
             char body[ERROR_BODY_MAX] = {0};
@@ -6160,8 +6173,8 @@ listener_on_accept(evutil_socket_t listener, short event, void *arg)
     bufferevent_setcb(bev,
             base == trusted_base ? trusted_on_read : miner_on_read,
             NULL, listener_on_error, arg);
-    bufferevent_setwatermark(bev, EV_READ, 0, MAX_LINE*100);
-    bufferevent_setwatermark(bev, EV_WRITE, 0, MAX_LINE*100);
+    bufferevent_setwatermark(bev, EV_READ, 0, MAX_LINE);
+    bufferevent_setwatermark(bev, EV_WRITE, 0, MAX_LINE);
     const client_t *c = client_add(fd, &ss, bev, base == trusted_base);
     log_info("New %s [%s:%d] connected", type, c->host, c->port);
     log_info("Pool accounts: %d, workers: %d, hashrate: %"PRIu64,

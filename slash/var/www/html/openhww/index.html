@@ -17,18 +17,18 @@
 <meta property="og:title" content="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet" />
 <meta property="og:locale" content="en_US" />
 <meta property="og:image" content="https://minexmr2.com/openhww/hww-new-thumb.png" />
-<meta name="description" content="Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets" />
-<meta property="og:description" content="Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets" />
+<meta name="description" content="Ultimately secure replacement of hardware, software wallets for all the cryptocurrencies and digital assets. No more Ledger, Atomic heart bleeding" />
+<meta property="og:description" content="Ultimately secure replacement of hardware, software wallets for all the cryptocurrencies and digital assets. No more Ledger, Atomic heart bleeding" />
 <link rel="canonical" href="https://minexmr2.com/openhww/" />
 <meta property="og:url" content="https://minexmr2.com/openhww/" />
 <meta property="og:site_name" content="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:url" content="https://minexmr2.com/openhww/" />
 <meta property="twitter:title" content="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet" />
-<meta property="twitter:description" content="Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets" />
+<meta property="twitter:description" content="Ultimately secure replacement of hardware, software wallets for all the cryptocurrencies and digital assets. No more Ledger, Atomic heart bleeding" />
 <meta property="twitter:image" content="https://minexmr2.com/openhww/hww-new-thumb.png" />
 <script type="application/ld+json">
-{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/openhww/hww-header3.svg"}},"headline":"OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet","url":"https://minexmr2.com/openhww/","description":"Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets","name":"OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet","@context":"https://schema.org"}
+{"@type":"WebSite","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://minexmr2.com/openhww/hww-header3.svg"}},"headline":"OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet","url":"https://minexmr2.com/openhww/","description":"Ultimately secure replacement of hardware, software wallets for all the cryptocurrencies and digital assets. No more Ledger, Atomic heart bleeding","name":"OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet","@context":"https://schema.org"}
 </script>
 
 <style>
@@ -173,6 +173,10 @@ img.screenshot {
 .story p {
     padding: 8px;
     color: var(--text-th-color);
+}
+
+.story ul {
+    padding-right: 8px;
 }
 
 p.story_red, header.story_red {
@@ -425,8 +429,8 @@ margin-top: 0px;
 
 /*** Light Mode Theme ***/
 [data-theme="default"] {
-  --body-bg-color: #bed2dd;
-  --card-bg-color: #eef;
+  --body-bg-color: #b0d0f0;
+  --card-bg-color: #def;
   --card-fn-bg-color: #ddf;
   --border-color: #888;
   --text-color: #333;
@@ -442,8 +446,8 @@ margin-top: 0px;
 }
 /* Dark Mode Theme */
 [data-theme="dark"] {
-  --body-bg-color: #2a3f6b;
-  --card-bg-color: #345;
+  --body-bg-color: #104070;
+  --card-bg-color: #245;
   --card-fn-bg-color: #446;
   --border-color: #999;
   --text-color: #fff;
@@ -452,7 +456,7 @@ margin-top: 0px;
   --toggler-color: #ccc;
   --switch-on-color: #fff;
   --switch-off-color: #444;
-  --link-color: #39d;
+  --link-color: #4ae;
   --link-color-hover: #3cf;
   --slider2-color: #ccc;
   --block-red-color: #904;
@@ -762,11 +766,15 @@ table.stats td#miner_lp, table.stats td#total_lp {
 
 <div style="margin-top: 20px; margin-bottom: 20px;">
 <h2 class="font_menu special"><img src="hww-header3.svg" class="inline_header2" alt="OpenHWW: Dedicated OpenBSD Laptop As Hardware Wallet icon 2" /><span>OpenHWW</span></h2>
-<h3 class="font_menu special">Ultimately secure replacement of a hardware wallet for all the cryptocurrencies and digital assets</h3>
+<h3 class="font_menu special">Ultimately secure replacement of hardware, software wallets for all the cryptocurrencies and digital assets. No more
+<a href="https://www.reddit.com/r/ledgerwallet/comments/13k937x/ledger_admits_the_ability_to_be_able_to_create/" target="_blank">Ledger</a>,
+<a href="https://www.reddit.com/r/CryptoCurrency/comments/13ziyof/atomic_wallet_mass_hack/" target="_blank">Atomic</a>
+heart bleeding</h3>
 <h4 class="font_meme special">&mdash;Give us your old-<img src="hww-mx2-rounded.png" class="meme" alt="OpenBSD meme image" />-school cryptos!&mdash;</h4>
 <h4 class="font_menu special"><a href="https://www.reddit.com/r/Monero/comments/13cjzs0/laptop_with_deactivated_intel_me_running_openbsd/" target="_blank">Proposed</a> 2023-05-08</h4>
-<h5 class="font_menu special">We believe the recent
-<a href="https://www.reddit.com/r/ledgerwallet/comments/13k937x/ledger_admits_the_ability_to_be_able_to_create/" target="_blank">disasters with hardware wallets</a>
+<h5 class="font_menu special">We believe the recent disasters with hardware, software wallets
+(Ledger,
+Atomic)
 have been caused by fundamental misunderstanding the
 <a href="https://docs.zksync.io/dev/security/approach/" target="_blank">Security by Isolation</a> concept, leading to blind trust in proprietary 3rd-parties</h5>
 </div>
@@ -783,35 +791,56 @@ have been caused by fundamental misunderstanding the
     <div class="episode__number">Whitepaper</div>
     <div class="episode__content">
       <div class="story">
-        <header class="story_red">Turn your dedicated laptop or USB-stick running <a href="https://www.openbsd.org/" target="_blank">OpenBSD</a>
-        into ultimately secure hardware wallet.
-        Official <a href="https://github.com/monero-project/monero" target="_blank">Monero&nbsp;CLI&nbsp;suite</a> and
-        <a href="https://github.com/spesmilo/electrum" target="_blank">Bitcoin&nbsp;Electrum</a> are already working</header>
+        <header class="story_red">Turn your dedicated <a href="https://en.wikipedia.org/wiki/X86-64" target="_blank">Intel/AMD&nbsp;x86-64</a> laptop or
+        <a href="https://en.wikipedia.org/wiki/AArch64" target="_blank">ARM64</a>&nbsp;dashboard
+        running <a href="https://www.openbsd.org/" target="_blank">OpenBSD</a>
+        into ultimately secure <a href="https://en.bitcoin.it/wiki/Hardware_wallet" target="_blank">Hardware&nbsp;Wallet</a>.
+        Also it can be a
+        <a href="https://www.virtualbox.org/" target="_blank">VirtualBox</a>
+        or
+        <a href="https://www.qubes-os.org/" target="_blank">Qubes&nbsp;OS</a>
+        virtual machine.
+        </header>
         <p>
-The nowadays <a href="https://decrypt.co/140317/ledger-crypto-wallet-under-fire-over-seed-phrase-recovery-service" target="_blank">scandal</a>
-around Ledger hardware wallet (and inherently all the hardware wallets) has inspired us to bring the only true fundamental solution
-for a hardware wallet: a dedicated laptop running OpenBSD on a SOFTRAID encrypted disk with disabled
-<a href="https://github.com/corna/me_cleaner" target="_blank">Intel&nbsp;ME</a>.
+<b>
+Official <a href="https://github.com/monero-project/monero" target="_blank">Monero&nbsp;CLI&nbsp;suite</a>,
+<a href="https://github.com/feather-wallet/feather" target="_blank">Feather Monero Wallet</a> and
+<a href="https://github.com/spesmilo/electrum" target="_blank">Bitcoin&nbsp;Electrum</a> are already working.
+Depending on your wish, they all can be configured to connect the Internet via <a href="https://www.torproject.org/" target="_blank">tor/tor&nbsp;browser</a> only.
+</b>
+        </p>
+        <p>
+The nowadays scandals
+around Ledger hardware wallet (and inherently all the proprietary hardware wallets) as well as Atomic software wallet (and inherently all the closed-source software wallets)
+have inspired us to bring the only true fundamental solution
+for a hardware/software wallet: a dedicated laptop running OpenBSD on a SOFTRAID encrypted disk with disabled
+<a href="https://github.com/corna/me_cleaner" target="_blank">Intel&nbsp;ME</a>/<a href="https://en.wikipedia.org/wiki/AMD_Platform_Security_Processor" target="_blank">AMD&nbsp;PSP</a>
+CPU manufacturer's spyware.
 Alternatively one can use a palette of
-<a href="https://www.openbsd.org/arm64.html" target="_blank">ARM&nbsp;dashboards</a>
+<a href="https://www.openbsd.org/arm64.html" target="_blank">ARM64&nbsp;dashboards</a>
 compatible with OpenBSD since ARM processors are typically too simple to have an "ARM&nbsp;ME".
         </p>
         <p>
 Currently, official
-<a href="https://github.com/monero-project/monero" target="_blank">Monero&nbsp;CLI</a>
+Monero&nbsp;CLI
 wallet has been successfully ported to OpenBSD. Also
-<a href="https://electrum.org/" target="_blank">Bitcoin&nbsp;Electrum</a>
-wallet and <a href="https://github.com/feather-wallet/feather" target="_blank">Monero&nbsp;Feather</a> wallet have been ported too.
-It just needs a time to write the build instructions. Screenshots for them are coming soon.
-All the apps work fine via <a href="https://www.torproject.org/" target="_blank">tor/tor&nbsp;browser</a> as well!
-We strongly believe every advanced crypto user MUST compile the wallet software himself from their sources, as it is directly required by the entire Crypto philosophy.
+Bitcoin&nbsp;Electrum
+and
+Monero&nbsp;Feather
+wallets have been ported too.
+It just needs a time to write the build instructions. Screenshots for them are available now.
+All the apps work fine via tor/tor&nbsp;browser as well!
+We strongly believe every advanced crypto user MUST compile the wallet software himself from their open sources, as it is directly required by the entire Crypto philosophy.
         </p>
         <p>
 Each crypto wallet on OpenBSD will be stored under separate user login and running on the current user's
 <a href="https://en.wikipedia.org/wiki/X_Window_System" target="_blank">X&nbsp;Window&nbsp;system</a> using original wallet login name.
 All the wallet users are unprivileged and thus completely isolated from each other. Customer can't accidentally wipe out the software.
 Also potential malware caught by one login name can't propagate to another one. And of course, customer can't catch a virus, because Firefox and Tor&nbsp;Browser
-are running from their own login names.
+are running from their own login names or even
+<a href="https://man.openbsd.org/chroot" target="_blank">chroot</a>
+or
+<a href="https://man.openbsd.org/vmm" target="_blank">vmm&nbsp;hypervisor</a>.
         </p>
         <p>
 The goal of this project is to provide fully automated open source scripts that build the open source wallet software on the customer's dedicated laptop or virtual machine.
@@ -824,31 +853,151 @@ the Crypto world as a Gold Standard of the finance security. OpenBSD ships with 
 display manager &amp;
 <a href="https://www.fvwm.org/" target="_blank">fvwm</a>
 window manager that both can resemble Microsoft Windows in base GUI interactions.
-<a href="https://www.virtualbox.org/" target="_blank">VirtualBox</a> OpenHWW images will be available soon for playing and testing purposes.
+VirtualBox OpenHWW images will be available soon for playing and testing purposes.
+        </p>
+        <p>
+There are customers that can't dedicate a whole separate computer to serve as a hardware wallet. No&nbsp;problem. They can create and bootstrap a
+VirtualBox
+or
+Qubes&nbsp;OS
+virtual machine from the same open source install script. Also there will be ready-to-use virtual machine images available for download and testing as well.
         </p>
         <p class="story_red">
 What another crypto wallets do you want to be ported and incorporated into fully automated build script on a
-OpenHWW&nbsp;by&nbsp;MineXMR2 platform? Write email to: <b>minexmr2@tutanota.com</b>.
+OpenHWW platform? Write email to: <b>minexmr2@tutanota.com</b>.
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+<div class="container_margin_donate"></div>
+</div>
+</div>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 episode1_bottom_shadow card">
+    <div class="episode__number">Frequently Asked Questions</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>Why do you call it a Hardware&nbsp;Wallet,
+        why not <a href="https://tails.boum.org/" target="_blank">Tails</a> or Qubes&nbsp;OS, etc.</header>
+        <p>
+Q: Indeed, it seems like a software distribution, why do you call it a Hardware Wallet?
         </p>
         <p>
+A: OpenHWW is not just a software distribution. Pedantically said, it is a <b>Hardware&nbsp;Wallet</b>:
+<ul>
+<li><b>Hardware</b>, because it is a completely isolated, separate device with disabled totalitarian
+<a href="https://en.wikipedia.org/wiki/Nineteen_Eighty-Four" target="_blank">1984</a> state spying firmware
+(Intel&nbsp;ME,
+AMD&nbsp;PSP, etc.).
+Also <a href="https://www.openbsd.org/arm64.html" target="_blank">compatible</a> ARM64&nbsp;dashboards like
+<a href="https://en.wikipedia.org/wiki/Raspberry_Pi" target="_blank">Raspberry&nbsp;PI</a>
+can be used as well, because their ARM chips are too simple to have ME&nbsp;("Malware Engine") or even completely open source.
+</li>
+<li><b>Wallet</b>, because the software installed is fully dedicated to serve the Special Purposes Only (crypto-financial operations).
+Customer can't download, install something else (it could be forced only under root with extra tribal dances: I'll plan to disable pkg_add by default).
+</li>
+</ul>
+        </p>
+        <p>
+Q: This is not a Hardware Wallet if it is actually connected to the internet?
+        </p>
+        <p>
+Hardware wallet is, by definition, a "small" and "hardware" device running specific software that can sign a transaction to be spent on a customer's request.
+The nuances come with what is "small enough", "hardware enough", and "could it do something extra than sign a transaction
+(preserving the security level of a "classic" hardware wallet)".
+        </p>
+        <p>
+The solution I propose can be:
+<ul>
+<li>
+"small enough", if running on an ARM64 dashboard at price some $40 or even on a bootable USB-flash that is much cheaper
+</li>
+<li>
+"hardware enough" if running on a dedicated device or as a dedicated VM in a highly secure hypervisor like QubesOS. You can call the latter variant "Virtual Hardware Wallet"
+</li>
+<li>
+"could it do something extra than sign a transaction (preserving the security level of a "classic" hardware wallet)",
+yes, OpenHWW can also broadcast the transaction signed, and even maintain the full blockchain node
+(that strengthens the security of overall solution); to be pedantic, a signing part of the wallet software (for example, in Monero, it is monero-wallet-rpc) must
+run in an isolated environment without Internet access. In OpenBSD it is achieved by <a href="https://man.openbsd.org/pledge" target="_blank">pledge</a> system call after chroot.
+</li>
+</ul>
+        </p>
+        <p>
+Q: Why don't use Tails instead?
+        </p>
+        <p>
+A: Tails got popularity since <a href="https://en.wikipedia.org/wiki/Edward_Snowden" target="_blank">Snowden</a> mentioned it as a tool that helped him to stay anonymous in Internet.
+And Tails is actually a Linux distro that focuses on anonymity in Internet. But anonymity does not equal to security. That are separate notions just closely related to each other.
+Hardware&nbsp;Wallet requirements include security mandatory, but anonymity is an option. Also the devs team behind Tails is not THAT trusted as devs team behind OpenBSD.
+And inherently, being a Linux distro, Tails has some potential security problems of Linux.
+        </p>
+        <p>
+Q: Why then not Qubes&nbsp;OS?
+        </p>
+        <p>
+A: Qubes&nbsp;OS is a top 2 good choice after OpenBSD that is top 1. We do strongly respect
+the founder <a href="https://en.wikipedia.org/wiki/Joanna_Rutkowska" target="_blank">Joanna&nbsp;Rutkowska</a>
+and recommend Qubes&nbsp;OS for those customers who don't have a dedicated laptop to run OpenBSD.
+We plan to test whether OpenBSD can run as HVM under Qubes&nbsp;OS. If so, it should be wonderful, since having a running host Qubes&nbsp;OS in
+<a href="https://www.qubes-os.org/doc/glossary/#dom0" target="_blank">dom0</a> you still have to
+choose guest OS running in <a href="https://www.qubes-os.org/doc/glossary/#domu" target="_blank">domU</a> as a Hardware&nbsp;Wallet,
+because Qubes&nbsp;OS does the isolation job, while what happens in a HVM remains in a HVM. If someone can attack your HVM&nbsp;OS
+and steal your wallet's private keys, Qubes&nbsp;OS just guarantees the attack will not propagate onto other domU HVMs or dom0 Qubes&nbsp;OS hypervisor.
+        </p>
+      </div>
+    </div>
+  </article>
+</div>
+</div>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+<div class="container_margin_donate"></div>
+</div>
+</div>
+
+<div class="container" data-theme="dark">
+<div class="inner_wrapper">
+  <article class="episode1 episode1_bottom_shadow card">
+    <div class="episode__number">Screenshots</div>
+    <div class="episode__content">
+      <div class="story">
+        <header>SOFTRAID disk encryption passphrase at boot, Xenodm login screen, Monerod running, and more</header>
+        <p>
 Trailer screenshot 1. OpenBSD boot. Type your passphrase for a SOFTRAID encrypted disk.
-<img class="screenshot" src="hww-passphrase.png" alt="OpenHWW by MineXMR2: Type your passphrase for a SOFTRAID encrypted disk" />
+<img class="screenshot" src="hww-passphrase.png" alt="OpenHWW: OpenBSD boot. Type your passphrase for a SOFTRAID encrypted disk" />
         </p>
         <p>
 Trailer screenshot 2. OpenBSD xenodm login. Type your username and password to login into a system.
-<img class="screenshot" src="hww-login-screen.png" alt="OpenHWW by MineXMR2: Type your username and password to login into a system" />
+<img class="screenshot" src="hww-login-screen.png" alt="OpenHWW: OpenBSD xenodm login. Type your username and password to login into a system" />
         </p>
         <p>
 Trailer screenshot 3. OpenBSD fvwm desktop. Right-click the screen by mouse to see a context menu like in Windows OS.
-<img class="screenshot" src="hww-desktop.png" alt="OpenHWW by MineXMR2: Right-click the screen by mouse to see context menu like in Windows OS" />
+<img class="screenshot" src="hww-desktop.png" alt="OpenHWW: OpenBSD fvwm desktop. Right-click the screen by mouse to see a context menu like in Windows OS" />
         </p>
         <p>
 Trailer screenshot 4. OpenBSD fvwm desktop running monerod &amp; monero-wallet-cli. Wait for full blockchain sync, then type you Monero wallet file name.
-<img class="screenshot" src="hww-desktop-monerod.png" alt="OpenHWW by MineXMR2: Wait for full blockchain sync, then type you Monero wallet file name" />
+<img class="screenshot" src="hww-desktop-monerod.png" alt="OpenHWW: OpenBSD fvwm desktop running monerod &amp; monero-wallet-cli. Wait for full blockchain sync, then type you Monero wallet file name" />
         </p>
         <p>
-Trailer screenshot 5. OpenBSD lock screen. Just type your password to resume your work.
-<img class="screenshot" src="hww-lock-screen.png" alt="OpenHWW by MineXMR2: Just type your password to resume your work" />
+Trailer screenshot 5. OpenBSD fvwm desktop running Monero Feather Wallet. It is working via Tor for the best anonymity.
+<img class="screenshot" src="hww-desktop-feather.png" alt="OpenHWW: OpenBSD fvwm desktop running Monero Feather Wallet. It is working via Tor for the best anonymity" />
+        </p>
+        <p>
+Trailer screenshot 6. OpenBSD fvwm desktop running Bitcoin Electrum Wallet. It is working via Tor for the best anonymity.
+<img class="screenshot" src="hww-desktop-electrum.png" alt="OpenHWW: OpenBSD fvwm desktop running Bitcoin Electrum Wallet. It is working via Tor for the best anonymity" />
+        </p>
+        <p>
+Trailer screenshot 7. OpenBSD lock screen. Just type your password to resume your work.
+<img class="screenshot" src="hww-lock-screen.png" alt="OpenHWW:  OpenBSD lock screen. Just type your password to resume your work" />
         </p>
       </div>
     </div>
@@ -897,7 +1046,8 @@ Trailer screenshot 5. OpenBSD lock screen. Just type your password to resume you
     <div class="episode__content">
       <div class="story">
         <p>
-2023-06-01. First trailer screenshots running monerod &amp; monero-wallet-cli have been added. Introduction has been written.
+2023-06-05. First trailer screenshots running Monero Feather Wallet and Bitcoin Electrum Wallet via Tor have been added.
+<br/>2023-06-01. First trailer screenshots running monerod &amp; monero-wallet-cli have been added. Introduction has been written.
         </p>
       </div>
     </div>
@@ -906,7 +1056,7 @@ Trailer screenshot 5. OpenBSD lock screen. Just type your password to resume you
     <div class="episode__content">
       <div class="story">
         <p>
-Currently OpenHWW by MineXMR2 uses <a href="https://www.openbsd.org/72.html" target="_blank">OpenBSD&nbsp;v7.2</a> as its base
+Currently OpenHWW uses <a href="https://www.openbsd.org/72.html" target="_blank">OpenBSD&nbsp;v7.2</a> as its base
 and <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.2" target="_blank">Monero&nbsp;CLI&nbsp;suite&nbsp;v0.18.2.2</a>.
         </p>
       </div>
@@ -917,8 +1067,11 @@ and <a href="https://github.com/monero-project/monero/releases/tag/v0.18.2.2" ta
       <div class="story">
         <p class="story_red">
 Support email if something goes wrong (especially with SOFTRAID disk encryption): <b>minexmr2@tutanota.com</b>.
+<br/>
+<span style="margin:auto; display:table;">
 <a href="https://www.reddit.com/user/florida-haunted" target="_blank"><img class="social" src="reddit-logo.svg" alt="Find us on Reddit" /></a>
 <a href="https://twitter.com/florida_haunted" target="_blank"><img class="social" src="twitter-logo.svg" alt="Find us on Twitter" /></a>
+</span>
         </p>
       </div>
     </div>
@@ -940,39 +1093,6 @@ document.getElementById('toggler').addEventListener('change', (event) => {
   }
   var slider2 = document.getElementsByClassName('slider2')[0];
   slider2.innerHTML = event.target.checked ? "DAY" : "NIGHT";
-
-  if (event.target.checked) {
-    layout.plot_bgcolor = "#fff";
-    layout.paper_bgcolor = "#fff";
-    layout.font.color = "#555";
-    layout.xaxis.gridcolor = "#ddd";
-    layout.yaxis.gridcolor = "#ddd";
-    layout2.plot_bgcolor = "#fff";
-    layout2.paper_bgcolor = "#fff";
-    layout2.font.color = "#555";
-    layout2.xaxis.gridcolor = "#ddd";
-    layout2.yaxis.gridcolor = "#ddd";
-    data[0].line.color = "#54a";
-    Plotly.newPlot('miner_plot', data, layout, config);
-    data2[0].line.color = "#54a";
-    Plotly.newPlot('p2pool_plot', data2, layout2, config2);
-  }
-  else {
-    layout.plot_bgcolor = "#444";
-    layout.paper_bgcolor = "#444";
-    layout.font.color = "#ddd";
-    layout.xaxis.gridcolor = "#555";
-    layout.yaxis.gridcolor = "#555";
-    layout2.plot_bgcolor = "#444";
-    layout2.paper_bgcolor = "#444";
-    layout2.font.color = "#ddd";
-    layout2.xaxis.gridcolor = "#555";
-    layout2.yaxis.gridcolor = "#555";
-    data[0].line.color = "#baf";
-    Plotly.newPlot('miner_plot', data, layout, config);
-    data2[0].line.color = "#baf";
-    Plotly.newPlot('p2pool_plot', data2, layout2, config2);
-  }
 });
 </script>
 
