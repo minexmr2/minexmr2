@@ -6,7 +6,7 @@
 
 [The Mission.](https://minexmr2.com/#mission)
 
-⚡ Jun 12 2023: Added official support of [xmrig-proxy](https://github.com/xmrig/xmrig-proxy); fixed some potential buffer overflow; updated to p2pool [v3.4](https://github.com/SChernykh/p2pool/releases/tag/v3.4).
+⚡ Sep 16 2023: 1st anniversary commit; updated to p2pool v3.5; config.pool_fee_wallet is mandatory now.
 
 ![minexmr2.com site screenshot](minexmr2-com-apr17.png?raw=true)
 
@@ -31,6 +31,8 @@ If you mine with us, you get your pending balance update as regular as p2pool fi
 Each time your pending balance reaches 0.01XMR you receive automatic payment.
 
 ## Latest news
+
+⚡ Sep 16 2023: 1st anniversary commit; updated to p2pool v3.5; config.pool_fee_wallet is mandatory now.
 
 ⚡ Jun 12 2023: Added official support of [xmrig-proxy](https://github.com/xmrig/xmrig-proxy); fixed some potential buffer overflow; updated to p2pool [v3.4](https://github.com/SChernykh/p2pool/releases/tag/v3.4).
 

@@ -989,7 +989,7 @@ balance_add(const char *address, uint64_t amount, MDB_txn *parent)
     rc = mdb_cursor_get(cursor, &key, &val, MDB_SET);
     if (rc == MDB_NOTFOUND)
     {
-        log_trace("Adding new balance entry");
+        log_info("Adding new balance entry");
         MDB_val new_val = { sizeof(amount), (void*)&amount };
         rc = mdb_cursor_put(cursor, &key, &new_val, 0);
         if (rc != 0)
@@ -2564,25 +2564,29 @@ p2pool_reward_balances_by_shares(int64_t *pbalance_prev, int64_t unlocked_balanc
     acc = (account_t*)gbag_first(bag_accounts);
     while ((acc = gbag_next(bag_accounts, 0)) != NULL)
     {
-		double acc_ratio = (double)acc->hashes / total_difficulty;
+        double acc_ratio = (double)acc->hashes / total_difficulty;
 
-		if (acc_ratio > 0.95)
-		{
-			int64_t cur_reward = (int64_t)(total_reward_minus_fee * (0.95));
-			log_info("(acc_ratio > 0.95) acc->address=%s, cur_reward=%"PRIi64"", acc->address, cur_reward);
-			rc = balance_add(acc->address, (uint64_t)cur_reward, parent);
-			if (rc != 0)
-				return rc;			
-		}		
-		else
-		{
+        if (acc_ratio > 0.95)
+        {
+            int64_t cur_reward = (int64_t)(total_reward_minus_fee * (0.95));
+            log_info("(acc_ratio > 0.95) acc->address=%s, cur_reward=%"PRIi64"", acc->address, cur_reward);
+            rc = balance_add(acc->address, (uint64_t)cur_reward, parent);
+            if (rc != 0)
+                return rc;
+        }
+        else
+        {
         int64_t cur_reward = (int64_t)(total_reward_minus_fee * (acc_ratio));
         log_info("acc->address=%s, cur_reward=%"PRIi64"", acc->address, cur_reward);
         rc = balance_add(acc->address, (uint64_t)cur_reward, parent);
         if (rc != 0)
             return rc;
-		}
+        }
     }
+
+    rc = balance_add(config.pool_fee_wallet, total_reward - total_reward_minus_fee, parent);
+    if (rc != 0)
+        return rc;
 
     *pbalance_prev += total_reward;
     *tosendpayments = true;
@@ -6474,17 +6478,21 @@ read_config(const char *config_file)
         log_fatal("Invalid pool wallet");
         exit(-1);
     }
-    if (config.pool_fee_wallet[0] &&
-            parse_address(config.pool_fee_wallet, NULL, NULL, NULL))
+    if (!config.pool_fee_wallet[0])
     {
-        log_error("Invalid fee wallet; ignoring");
-        memset(config.pool_fee_wallet, 0, sizeof(config.pool_fee_wallet));
+        log_fatal("No pool fee wallet supplied. Aborting.");
+        exit(-1);
+    }
+    if (parse_address(config.pool_fee_wallet, NULL, &nettype, &pub_spend[0]))
+    {
+        log_fatal("Invalid pool fee wallet. Aborting.");
+        exit(-1);
     }
     if (strncmp(config.pool_fee_wallet, config.pool_wallet,
             sizeof(config.pool_wallet)-1) == 0)
     {
-        log_error("Fee wallet cannot match the pool wallet; ignoring");
-        memset(config.pool_fee_wallet, 0, sizeof(config.pool_fee_wallet));
+        log_fatal("Fee wallet cannot match the pool wallet. Aborting.");
+        exit(-1);
     }
     if (!config.wallet_rpc_host[0] || config.wallet_rpc_port == 0)
     {
@@ -6517,11 +6525,6 @@ read_config(const char *config_file)
     if ((config.p2pool_listen[0] == 0) || (config.p2pool_port == 0))
     {
         log_fatal("P2pool support compiled, but its listening IP and Port are not set. Aborting.");
-        exit(-1);
-    }
-    if (config.pool_fee_wallet[0])
-    {
-        log_fatal("P2pool support compiled, but config.pool_fee_wallet is not supported yet. Aborting.");
         exit(-1);
     }
     if (config.p2pool_safe_balance <= 0.0)
